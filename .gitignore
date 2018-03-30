@@ -101,4 +101,9 @@ ENV/
 .mypy_cache/
 
 .idea/
-DIRNet-tensorflow-master/
+DIRNet_tensorflow_master/temp/
+DIRNet_tensorflow_master/result/
+DIRNet_tensorflow_master/MNIST_data/
+DIRNet_tensorflow_master/misc/
+DIRNet_tensorflow_master/checkpoint/
+DIRNet_tensorflow_master/README.md

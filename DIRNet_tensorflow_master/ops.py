@@ -49,12 +49,6 @@ def mse(x, y):
     return tf.reduce_mean(tf.square(x - y))
 
 
-def mkdir(dir_path):
-    try:
-        os.makedirs(dir_path)
-    except:
-        pass
-
 
 def save_image_with_scale(path, arr):
     arr = np.clip(arr, 0., 1.)

@@ -1,16 +1,22 @@
+import os
 import tensorflow as tf
 from DIRNet_tensorflow_master.models import DIRNet
 from DIRNet_tensorflow_master.config import get_config
 from DIRNet_tensorflow_master.data import MNISTDataHandler
-from DIRNet_tensorflow_master.ops import mkdir
 
 
 def main():
-    sess = tf.Session()
+    # get configure
     config = get_config(is_train=True)
-    mkdir(config["temp_dir"])
-    mkdir(config["checkpoint_dir"])
 
+    # file operations
+    if not os.path.exists(config["temp_dir"]):
+        os.mkdir(config["temp_dir"])
+    if not os.path.exists(config["checkpoint_dir"]):
+        os.mkdir(config["checkpoint_dir"])
+
+    #
+    sess = tf.Session()
     reg = DIRNet(sess, config, "DIRNet", is_train=True)
     dh = MNISTDataHandler("MNIST_data", is_train=True)
 

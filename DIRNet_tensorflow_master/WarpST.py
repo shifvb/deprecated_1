@@ -1,5 +1,6 @@
 import tensorflow as tf
-from bicubic_interp import bicubic_interp_2d
+from DIRNet_tensorflow_master.bicubic_interp import bicubic_interp_2d
+
 
 def WarpST(U, V, out_size, name='DeformableTransformer', **kwargs):
     """Deformable Transformer Layer with bicubic interpolation
@@ -41,8 +42,8 @@ def WarpST(U, V, out_size, name='DeformableTransformer', **kwargs):
             max_x = tf.cast(tf.shape(im)[2] - 1, 'int32')
 
             # scale indices from [-1, 1] to [0, width/height]
-            x = (x + 1.0)*(width_f) / 2.0
-            y = (y + 1.0)*(height_f) / 2.0
+            x = (x + 1.0) * (width_f) / 2.0
+            y = (y + 1.0) * (height_f) / 2.0
 
             # do sampling
             x0 = tf.cast(tf.floor(x), 'int32')
@@ -55,10 +56,10 @@ def WarpST(U, V, out_size, name='DeformableTransformer', **kwargs):
             y0 = tf.clip_by_value(y0, zero, max_y)
             y1 = tf.clip_by_value(y1, zero, max_y)
             dim2 = width
-            dim1 = width*height
-            base = _repeat(tf.range(num_batch)*dim1, out_height*out_width)
-            base_y0 = base + y0*dim2
-            base_y1 = base + y1*dim2
+            dim1 = width * height
+            base = _repeat(tf.range(num_batch) * dim1, out_height * out_width)
+            base_y0 = base + y0 * dim2
+            base_y1 = base + y1 * dim2
             idx_a = base_y0 + x0
             idx_b = base_y1 + x0
             idx_c = base_y0 + x1
@@ -78,11 +79,11 @@ def WarpST(U, V, out_size, name='DeformableTransformer', **kwargs):
             x1_f = tf.cast(x1, 'float32')
             y0_f = tf.cast(y0, 'float32')
             y1_f = tf.cast(y1, 'float32')
-            wa = tf.expand_dims(((x1_f-x) * (y1_f-y)), 1)
-            wb = tf.expand_dims(((x1_f-x) * (y-y0_f)), 1)
-            wc = tf.expand_dims(((x-x0_f) * (y1_f-y)), 1)
-            wd = tf.expand_dims(((x-x0_f) * (y-y0_f)), 1)
-            output = tf.add_n([wa*Ia, wb*Ib, wc*Ic, wd*Id])
+            wa = tf.expand_dims(((x1_f - x) * (y1_f - y)), 1)
+            wb = tf.expand_dims(((x1_f - x) * (y - y0_f)), 1)
+            wc = tf.expand_dims(((x - x0_f) * (y1_f - y)), 1)
+            wd = tf.expand_dims(((x - x0_f) * (y - y0_f)), 1)
+            output = tf.add_n([wa * Ia, wb * Ib, wc * Ic, wd * Id])
             return output
 
     def _meshgrid(height, width):
@@ -115,16 +116,16 @@ def WarpST(U, V, out_size, name='DeformableTransformer', **kwargs):
             width_f = tf.cast(width, 'float32')
             out_height = out_size[0]
             out_width = out_size[1]
-            grid = _meshgrid(out_height, out_width)     # [2, h*w]
-            grid = tf.reshape(grid, [-1])               # [2*h*w]
-            grid = tf.tile(grid, tf.stack([num_batch]))           # [n*2*h*w]
-            grid = tf.reshape(grid, tf.stack([num_batch, 2, -1])) # [n, 2, h*w]
+            grid = _meshgrid(out_height, out_width)  # [2, h*w]
+            grid = tf.reshape(grid, [-1])  # [2*h*w]
+            grid = tf.tile(grid, tf.stack([num_batch]))  # [n*2*h*w]
+            grid = tf.reshape(grid, tf.stack([num_batch, 2, -1]))  # [n, 2, h*w]
 
             # transform (x, y)^T -> (x+vx, x+vy)^T
             V = bicubic_interp_2d(V, out_size)
-            V = tf.transpose(V, [0, 3, 1, 2])           # [n, 2, h, w]
-            V = tf.reshape(V, [num_batch, 2, -1])       # [n, 2, h*w]
-            T_g = tf.add(V, grid)                       # [n, 2, h*w]
+            V = tf.transpose(V, [0, 3, 1, 2])  # [n, 2, h, w]
+            V = tf.reshape(V, [num_batch, 2, -1])  # [n, 2, h*w]
+            T_g = tf.add(V, grid)  # [n, 2, h*w]
 
             x_s = tf.slice(T_g, [0, 0, 0], [-1, 1, -1])
             y_s = tf.slice(T_g, [0, 1, 0], [-1, 1, -1])
@@ -135,7 +136,7 @@ def WarpST(U, V, out_size, name='DeformableTransformer', **kwargs):
                 U, x_s_flat, y_s_flat, out_size)
 
             output = tf.reshape(
-                input_transformed, 
+                input_transformed,
                 tf.stack([num_batch, out_height, out_width, num_channels]))
             return output
 

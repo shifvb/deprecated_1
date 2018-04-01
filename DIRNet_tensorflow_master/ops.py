@@ -49,7 +49,6 @@ def mse(x, y):
     return tf.reduce_mean(tf.square(x - y))
 
 
-
 def save_image_with_scale(path, arr):
     arr = np.clip(arr, 0., 1.)
     arr = arr * 255.

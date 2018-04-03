@@ -7,7 +7,7 @@ from look_labels_app.utils.ImageProcessor import norm_image, threshold_image, ge
 
 
 class TransversePlaneGUI(tk.Toplevel):
-    def __init__(self, hu_arrs, suv_arrs, mask_arrs):
+    def __init__(self, hu_arrs, suv_arrs):
         super().__init__()
         self.top_level = self
         self.top_level.title("Transverse Plane View")
@@ -18,7 +18,6 @@ class TransversePlaneGUI(tk.Toplevel):
 
         self.hu_arrs = hu_arrs
         self.suv_arrs = suv_arrs
-        self.mask_arrs = mask_arrs
         self.current_index = -1  # 当前图片索引
         self.total_img_num = -1  # 共有多少组图片
         self.clock = Clock(0.12)  # 设置最小键盘事件触发间隔

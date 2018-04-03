@@ -2,6 +2,7 @@ import os
 import pickle
 import numpy as np
 import pydicom
+import dicom_numpy
 from look_labels_app.utils.register import register
 
 
@@ -30,10 +31,10 @@ def _load_CT_PET_data(ct_path: str, pt_path: str):
     pt_filenames = [os.path.join(pt_path, _) for _ in os.listdir(pt_path) if _.startswith("PT_")]
     pt_filenames.sort(key=lambda _: int(_.split("_")[-1]))
     # 拼接数组
-    ct_arrs = np.stack([pydicom.read_file(_).pixel_array for _ in ct_filenames])
-    pt_arrs = np.stack([pydicom.read_file(_).pixel_array for _ in pt_filenames])
+    ct_voxel_ndarray, ct_ijk_to_xyz = dicom_numpy.combine_slices([pydicom.read_file(_) for _ in ct_filenames])
+    pt_voxel_ndarray, pt_ijk_to_xyz = dicom_numpy.combine_slices([pydicom.read_file(_) for _ in pt_filenames])
     # 返回值
-    return ct_arrs, pt_arrs
+    return ct_voxel_ndarray.transpose([2, 1, 0])[::-1, :, :], pt_voxel_ndarray.transpose([2, 1, 0])[::-1, :, :], ct_ijk_to_xyz, pt_ijk_to_xyz
 
 
 def load_data(ct_path: str, pt_path: str, work_directory: str):

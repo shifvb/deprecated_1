@@ -52,7 +52,7 @@ class MainGUI(object):
         pt_path = os.path.join(path, "5")
 
         # 加载图像序列
-        self.ct_arrs, self.suv_arrs = load_data(ct_path, pt_path, work_directory=path)
+        self.ct_arrs, self.suv_arrs, _, _ = load_data(ct_path, pt_path, work_directory=path)
 
         # 加载病人基本信息
         self.patient_info_ct = deepcopy(getBaseInfo(ct_path))

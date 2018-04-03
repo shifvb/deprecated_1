@@ -48,12 +48,11 @@ class MainGUI(object):
         """用户点击加载按钮回调函数"""
         # 确定ct，pt，mask文件夹位置
         path = self.load_dir_var.get()
-        mask_path = os.path.join(path, "mask")
         ct_path = os.path.join(path, "4")
         pt_path = os.path.join(path, "5")
 
         # 加载图像序列
-        self.ct_arrs, _, self.suv_arrs = load_data(ct_path, pt_path, mask_path, work_directory=path)
+        self.ct_arrs, _, self.suv_arrs = load_data(ct_path, pt_path, work_directory=path)
 
         # 加载病人基本信息
         self.patient_info_ct = deepcopy(getBaseInfo(ct_path))

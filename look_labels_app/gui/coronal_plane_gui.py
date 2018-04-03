@@ -132,7 +132,7 @@ class CoronalPlaneGUI(tk.Toplevel):
 
     def close_window_callback(self):
         """关闭子窗口时，绑定在子类实例上的数组所占内存并没有被释放，容易导致内存溢出。
-        因此自定义关闭窗口回调函数，删除其所占内存"""
+        因此自定义关闭窗口回调函数，释放其所占内存"""
         del self.hu_arrs
         del self.suv_arrs
         self.top_level.destroy()

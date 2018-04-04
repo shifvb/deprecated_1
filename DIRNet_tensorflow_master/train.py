@@ -3,6 +3,7 @@ import random
 import pickle
 import numpy as np
 import tensorflow as tf
+import SimpleITK as sitk
 from DIRNet_tensorflow_master.models import DIRNet
 from DIRNet_tensorflow_master.config import get_config
 from DIRNet_tensorflow_master.data import MNISTDataHandler
@@ -37,6 +38,9 @@ def my_train():
     """暂时往里面训练一些512x512的图像"""
     # 加载数据
     batch_xs, batch_ys = pickle.load(open(r"F:\\registration\\ct_batches.pickle", 'rb'))
+    # show image
+    # sitk.Show(sitk.GetImageFromArray(batch_xs))
+    # sitk.Show(sitk.GetImageFromArray(batch_ys))
 
     def _sample_pair(bxs, bys, batch_size: int = 64):
         _bx, _by = [], []
@@ -53,8 +57,8 @@ def my_train():
     # config
     config = {
         "checkpoint_dir": "checkpoint",
-        "image_size": [512, 512],
-        "batch_size": 2,
+        "image_size": [256, 256],
+        "batch_size": 20,
         "learning_rate": 1e-4,
         "iteration_num": 10000,
         "temp_dir": "temp",
@@ -78,7 +82,7 @@ def my_train():
         loss = reg.fit(batch_x, batch_y)
         print("iter {:>6d} : {}".format(i + 1, loss))
 
-        if (i + 1) % 200 == 0:
+        if (i + 1) % 400 == 0:
             reg.deploy(config["temp_dir"], batch_x, batch_y)
             reg.save(config["checkpoint_dir"])
 

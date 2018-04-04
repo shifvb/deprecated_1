@@ -54,13 +54,13 @@ def register_img(moving_image, fixed_image):
 
 
 if __name__ == "__main__":
-    x = r"C:\Users\anonymous\Desktop\workspace\moving_image.jpg"
-    y = r"C:\Users\anonymous\Desktop\workspace\fixed_image.jpg"
-    x_arr = np.array(Image.open(x)).reshape([64, 64, 1])
-    y_arr = np.array(Image.open(y)).reshape([64, 64, 1])
-    Image.fromarray(x_arr[:, :, 0]).show()
-    Image.fromarray(y_arr[:, :, 0]).show()
-    x_arr = x_arr / 255
-    y_arr = y_arr / 255
-    register_img(x_arr, y_arr)
-    # main()
+    # x = r"C:\Users\anonymous\Desktop\workspace\moving_image.jpg"
+    # y = r"C:\Users\anonymous\Desktop\workspace\fixed_image.jpg"
+    # x_arr = np.array(Image.open(x)).reshape([64, 64, 1])
+    # y_arr = np.array(Image.open(y)).reshape([64, 64, 1])
+    # Image.fromarray(x_arr[:, :, 0]).show()
+    # Image.fromarray(y_arr[:, :, 0]).show()
+    # x_arr = x_arr / 255
+    # y_arr = y_arr / 255
+    # register_img(x_arr, y_arr)
+    main()

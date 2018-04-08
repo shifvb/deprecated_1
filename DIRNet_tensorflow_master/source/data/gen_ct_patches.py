@@ -36,9 +36,13 @@ def _crop(batch_x: list, batch_y: list, patch_size: tuple):
         _shape = batch_x[i].shape  # [512, 512]
         _rand_x = random.randint(0, _shape[1] - patch_size[1] - 1)
         _rand_y = random.randint(0, _shape[0] - patch_size[0] - 1)
-        _box = [_rand_x, _rand_y, _rand_x + patch_size[1], _rand_y + patch_size[0]]
-        batch_x[i] = np.array(Image.fromarray(batch_x[i]).crop([*_box]))
-        batch_y[i] = np.array(Image.fromarray(batch_y[i]).crop([*_box]))
+        _rand_x_bias = random.choice([-10, 10])
+        _rand_y_bias = random.choice([-10, 10])
+        _box_x = [_rand_x, _rand_y, _rand_x + patch_size[1], _rand_y + patch_size[0]]
+        _box_y = [_box_x[0] + _rand_x_bias, _box_x[1] + _rand_y_bias,
+                  _box_x[2] + _rand_x_bias, _box_x[3] + _rand_y_bias]
+        batch_x[i] = np.array(Image.fromarray(batch_x[i]).crop([*_box_x]))
+        batch_y[i] = np.array(Image.fromarray(batch_y[i]).crop([*_box_y]))
     return batch_x, batch_y
 
 
@@ -50,11 +54,11 @@ def gen_batches(workspaces: list):
         ct_workspace = os.path.join(workspace, "4")
         ct_filenames = [os.path.join(ct_workspace, _) for _ in os.listdir(ct_workspace) if _.startswith("CT_")]
         ct_filenames.sort(key=lambda _: int(_.split("_")[-1]))
-        _x, _y = _gen_batches([pydicom.read_file(_).pixel_array for _ in ct_filenames], middle_length=150)
-        batch_x.extend(_x)
-        batch_y.extend(_y)
+        ct_arrs = [pydicom.read_file(_).pixel_array for _ in ct_filenames]
+        batch_x.extend(ct_arrs.copy())
+        batch_y.extend(ct_arrs.copy())
     print("cropping image...")
-    batch_x, batch_y = _crop(batch_x, batch_y, (256, 256))
+    batch_x, batch_y = _crop(batch_x, batch_y, (128, 128))
     print("stacking image...")
     batch_x = np.stack(batch_x, axis=0)
     batch_y = np.stack(batch_y, axis=0)
@@ -69,8 +73,11 @@ def gen_batches(workspaces: list):
 
 
 def main():
-    workspaces = [os.path.join(r"F:\registration", _) for _ in os.listdir(r"F:\registration") if not _.endswith("ckle")]
-    pickle.dump(gen_batches(workspaces), open(r"F:\registration\ct_batches.pickle", 'wb'))
+    workspaces = [os.path.join(r"F:\registration", _) for _ in os.listdir(r"F:\registration")]
+    train_workspaces = workspaces[:-1]
+    test_workspaces = workspaces[-1:]
+    pickle.dump(gen_batches(train_workspaces), open(r"F:\registration_patches\ct_batches_train.pickle", 'wb'))
+    pickle.dump(gen_batches(test_workspaces), open(r"F:\registration_patches\ct_batches_test.pickle", 'wb'))
 
 
 if __name__ == '__main__':

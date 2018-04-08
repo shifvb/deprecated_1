@@ -35,9 +35,9 @@ def main():
 
 
 def my_train():
-    """暂时往里面训练一些512x512的图像"""
+    """暂时往里面训练一些图像"""
     # 加载数据
-    batch_xs, batch_ys = pickle.load(open(r"F:\\registration\\ct_batches.pickle", 'rb'))
+    batch_xs, batch_ys = pickle.load(open(r"F:\\registration_patches\\ct_batches_train.pickle", 'rb'))
     # show image
     # sitk.Show(sitk.GetImageFromArray(batch_xs))
     # sitk.Show(sitk.GetImageFromArray(batch_ys))
@@ -57,8 +57,8 @@ def my_train():
     # config
     config = {
         "checkpoint_dir": "checkpoint",
-        "image_size": [256, 256],
-        "batch_size": 20,
+        "image_size": [128, 128],
+        "batch_size": 80,
         "learning_rate": 1e-4,
         "iteration_num": 10000,
         "temp_dir": "temp",
@@ -82,7 +82,7 @@ def my_train():
         loss = reg.fit(batch_x, batch_y)
         print("iter {:>6d} : {}".format(i + 1, loss))
 
-        if (i + 1) % 400 == 0:
+        if (i + 1) % 1000 == 0:
             reg.deploy(config["temp_dir"], batch_x, batch_y)
             reg.save(config["checkpoint_dir"])
 

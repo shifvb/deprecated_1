@@ -12,7 +12,7 @@ from DIRNet_tensorflow_master.source.log import my_logger
 logger = my_logger(r"f:\train.log")
 
 
-def main():
+def deprecated_main():
     # get configure
     config = get_config(is_train=True)
 
@@ -130,4 +130,4 @@ def my_train():
 
 if __name__ == "__main__":
     my_train()
-    # main()
+    # deprecated_main()

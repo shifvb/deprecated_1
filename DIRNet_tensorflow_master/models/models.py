@@ -1,6 +1,5 @@
-import tensorflow as tf
-from .WarpST import WarpST
-from .ops import *
+from DIRNet_tensorflow_master.models.WarpST import WarpST
+from DIRNet_tensorflow_master.ops import *
 
 
 class CNN(object):

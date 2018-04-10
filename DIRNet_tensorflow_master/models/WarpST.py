@@ -1,5 +1,5 @@
 import tensorflow as tf
-from DIRNet_tensorflow_master.bicubic_interp import bicubic_interp_2d
+from DIRNet_tensorflow_master.models.bicubic_interp import bicubic_interp_2d
 
 
 def WarpST(U, V, out_size, name='DeformableTransformer', **kwargs):

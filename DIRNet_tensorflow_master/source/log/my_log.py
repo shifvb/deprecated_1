@@ -1,5 +1,4 @@
 import logging
-import time
 import sys
 
 
@@ -19,10 +18,3 @@ def my_logger(log_filename: str):
     _logger.addHandler(console)
     _logger.addHandler(file_handler)
     return _logger
-
-
-if __name__ == '__main__':
-    lg = my_logger("f:\\out.log")
-    for i in range(10):
-        lg.info("[INFO] [{}] blablalb".format(time.asctime()))
-        time.sleep(0.4)

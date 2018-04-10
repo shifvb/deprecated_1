@@ -3,7 +3,7 @@ import random
 import pickle
 import numpy as np
 import tensorflow as tf
-from DIRNet_tensorflow_master.models import DIRNet
+from DIRNet_tensorflow_master.models.models import DIRNet
 from DIRNet_tensorflow_master.data.log import my_logger
 
 logger = my_logger(r"f:\train.log")
@@ -38,6 +38,8 @@ def my_train():
             _min, _max = min(_x.min(), _y.min()), max(_x.max(), _y.max())
             _x = (_x - _min) / (_max - _min)
             _y = (_y - _min) / (_max - _min)
+            # _x = _x / 255
+            # _y = _y / 255
             _bx.append(_x)
             _by.append(_y)
         return np.stack(_bx, axis=0), np.stack(_by, axis=0)
@@ -57,30 +59,10 @@ def my_train():
         os.mkdir(config["temp_dir"])
     if not os.path.exists(config["checkpoint_dir"]):
         os.mkdir(config["checkpoint_dir"])
+
     # 加载数据
-    batch_filenames = ['F:\\registration_patches\\ct_batches_train_0.pickle',
-                       'F:\\registration_patches\\ct_batches_train_1.pickle',
-                       'F:\\registration_patches\\ct_batches_train_2.pickle',
-                       'F:\\registration_patches\\ct_batches_train_3.pickle',
-                       'F:\\registration_patches\\ct_batches_train_4.pickle',
-                       'F:\\registration_patches\\ct_batches_train_5.pickle',
-                       'F:\\registration_patches\\ct_batches_train_6.pickle',
-                       'F:\\registration_patches\\ct_batches_train_7.pickle',
-                       'F:\\registration_patches\\ct_batches_train_8.pickle',
-                       'F:\\registration_patches\\ct_batches_train_9.pickle',
-                       'F:\\registration_patches\\ct_batches_train_10.pickle',
-                       'F:\\registration_patches\\ct_batches_train_11.pickle',
-                       'F:\\registration_patches\\ct_batches_train_12.pickle',
-                       'F:\\registration_patches\\ct_batches_train_13.pickle',
-                       'F:\\registration_patches\\ct_batches_train_14.pickle',
-                       'F:\\registration_patches\\ct_batches_train_15.pickle',
-                       'F:\\registration_patches\\ct_batches_train_16.pickle',
-                       'F:\\registration_patches\\ct_batches_train_17.pickle',
-                       'F:\\registration_patches\\ct_batches_train_18.pickle',
-                       'F:\\registration_patches\\ct_batches_train_19.pickle',
-                       'F:\\registration_patches\\ct_batches_train_20.pickle',
-                       'F:\\registration_patches\\ct_batches_train_21.pickle',
-                       'F:\\registration_patches\\ct_batches_train_22.pickle']
+    batch_filenames = r"F:\registration_patches\train"
+    batch_filenames = [os.path.join(batch_filenames, _) for _ in os.listdir(batch_filenames)]
     batches = Batches(config["iteration_num"], batch_filenames)
 
     # 构建网络

@@ -3,9 +3,8 @@ import random
 import pickle
 import numpy as np
 import tensorflow as tf
-import SimpleITK as sitk
 from DIRNet_tensorflow_master.models import DIRNet
-from DIRNet_tensorflow_master.source.log import my_logger
+from DIRNet_tensorflow_master.data.log import my_logger
 
 logger = my_logger(r"f:\train.log")
 

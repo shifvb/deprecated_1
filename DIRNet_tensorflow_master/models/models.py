@@ -1,5 +1,5 @@
 from DIRNet_tensorflow_master.models.WarpST import WarpST
-from DIRNet_tensorflow_master.ops import *
+from DIRNet_tensorflow_master.models.ops import *
 
 
 class CNN(object):

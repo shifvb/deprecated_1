@@ -24,8 +24,18 @@ def _crop(batch_x: list, batch_y: list, patch_size: tuple, patch_num_per_img: in
             _rand_x = random.randint(0, _shape[1] - patch_size[1] - 1)
             _rand_y = random.randint(0, _shape[0] - patch_size[0] - 1)
             # 产生moving image的偏移像素算法
-            _rand_x_bias = random.choice([-9])
-            _rand_y_bias = random.choice([0])
+            while True:
+                _rand_x_bias = random.choice([-13, -12, -11, -10, -9, -8, 0, 8, 9, 10, 11, 12, 13])
+                _rand_y_bias = random.choice([-13, -12, -11, -10, -9, -8, 0, 8, 9, 10, 11, 12, 13])
+                if _rand_x_bias == 0 and _rand_y_bias == 0:
+                    continue
+                if _rand_x_bias != 0 and _rand_y_bias != 0:
+                    if random.randint(0, 1) == 0:
+                        _rand_x_bias = 0
+                    else:
+                        _rand_y_bias = 0
+                    break
+                break
             # 分别计算 fixed_image 和 moving_image 的 box
             _fix_box = [_rand_x, _rand_y, _rand_x + patch_size[1], _rand_y + patch_size[0]]
             _mov_box = [_fix_box[0] + _rand_x_bias, _fix_box[1] + _rand_y_bias,

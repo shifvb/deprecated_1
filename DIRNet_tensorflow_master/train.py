@@ -77,6 +77,14 @@ def my_train():
         loss = reg.fit(batch_x, batch_y)
         logger.info("iter {:>6d} : {}".format(i + 1, loss))
 
+        # 提取vCNN向量看看
+        if i % 10 == 0:
+            _test_v_path = r"f:\\temp_v_weights"
+            _test_v_path = os.path.join(_test_v_path, "iter_{}.pickle".format(i))
+            _v = sess.run(reg.v, feed_dict={reg.x: batch_x, reg.y: batch_y})
+            with open(_test_v_path, 'wb') as f:
+                pickle.dump(_v, f)
+
         if (i + 1) % 1000 == 0:
             reg.deploy(config["temp_dir"], batch_x, batch_y)
             reg.save(config["checkpoint_dir"])

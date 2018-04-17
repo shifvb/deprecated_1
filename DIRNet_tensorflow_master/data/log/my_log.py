@@ -1,8 +1,9 @@
+import os
 import logging
 import sys
 
 
-def my_logger(log_filename: str):
+def my_logger(folder_name: str, file_name: str):
     # get logger
     _logger = logging.getLogger(__name__)
     _logger.setLevel(logging.INFO)
@@ -12,7 +13,10 @@ def my_logger(log_filename: str):
     console = logging.StreamHandler(sys.stdout)
     console.setFormatter(formatter)
     # file handler
-    file_handler = logging.FileHandler(log_filename)
+    if not os.path.exists(folder_name):
+        print("[DEBUG] Folder \"{}\" does not exist. create".format(folder_name), file=sys.stdout)
+        os.makedirs(folder_name)
+    file_handler = logging.FileHandler(os.path.join(folder_name, file_name))
     file_handler.setFormatter(formatter)
     # add the handler to the root logger
     _logger.addHandler(console)

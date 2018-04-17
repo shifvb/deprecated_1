@@ -6,7 +6,7 @@ import tensorflow as tf
 from DIRNet_tensorflow_master.models.models import DIRNet
 from DIRNet_tensorflow_master.data.log import my_logger
 
-logger = my_logger(r"f:\train.log")
+logger = my_logger(folder_name=r"f:\registration_running_data\log", file_name="train.log")
 
 
 class Batches(object):  # 用来惰性加载batches文件的(按病人分开)
@@ -76,14 +76,6 @@ def my_train():
         batch_x, batch_y = _sample_pair(*(batches.get_batches(i)), config["batch_size"])
         loss = reg.fit(batch_x, batch_y)
         logger.info("iter {:>6d} : {}".format(i + 1, loss))
-
-        # 提取vCNN向量看看
-        if i % 10 == 0:
-            _test_v_path = r"f:\\temp_v_weights"
-            _test_v_path = os.path.join(_test_v_path, "iter_{}.pickle".format(i))
-            _v = sess.run(reg.v, feed_dict={reg.x: batch_x, reg.y: batch_y})
-            with open(_test_v_path, 'wb') as f:
-                pickle.dump(_v, f)
 
         if (i + 1) % 1000 == 0:
             reg.deploy(config["temp_dir"], batch_x, batch_y)

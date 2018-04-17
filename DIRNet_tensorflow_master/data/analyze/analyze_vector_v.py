@@ -3,7 +3,7 @@ import os
 import pickle
 import matplotlib.pyplot as plt
 
-workspace = r"F:\toTransfer\配准效果备份\2018_04_16_17_00_实验二_向下移动11像素(获取数组reg.v)_imgnum=60410_imgsize=128x128_batch=80_iter=10000\temp_v_weights"
+workspace = r"F:\toTransfer\配准效果备份\2018_04_17_08_35_实验一_(将reg.v加入loss，且可训练)_imgnum=60410_imgsize=128x128_batch=80_iter=10000\temp_v_weights"
 filenames = os.listdir(workspace)
 filenames = [os.path.join(workspace, _) for _ in filenames]
 

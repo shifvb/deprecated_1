@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 
 def main():
-    workspace = r"F:\toTransfer\配准效果备份\2018_04_17_08_35_实验一_(将reg.v加入loss，且可训练)_imgnum=60410_imgsize=128x128_batch=80_iter=10000\log"
+    workspace = r"F:\toTransfer\配准效果备份\2018_04_17_09_36_实验二_(使用了源程序自带的mse作为loss)_imgnum=60410_imgsize=128x128_batch=80_iter=10000\log"
     with open(os.path.join(workspace, "train.log"), 'r') as f:
         s = f.read()
 

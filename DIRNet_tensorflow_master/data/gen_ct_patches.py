@@ -25,10 +25,10 @@ def _crop(batch_x: list, batch_y: list, patch_size: tuple, patch_num_per_img: in
             _rand_y = random.randint(0, _shape[0] - patch_size[0] - 1)
             # 产生moving image的偏移像素算法
             while True:
-                # _rand_x_bias = random.choice([-13, -12, -11, -10, -9, -8, 0, 8, 9, 10, 11, 12, 13])
-                _rand_x_bias = 0
-                # _rand_y_bias = random.choice([-13, -12, -11, -10, -9, -8, 0, 8, 9, 10, 11, 12, 13])
-                _rand_y_bias = -11
+                _rand_x_bias = random.choice([-13, -12, -11, -10, -9, -8, 0, 8, 9, 10, 11, 12, 13])
+                # _rand_x_bias = 0
+                _rand_y_bias = random.choice([-13, -12, -11, -10, -9, -8, 0, 8, 9, 10, 11, 12, 13])
+                # _rand_y_bias = -11
                 if _rand_x_bias == 0 and _rand_y_bias == 0:
                     continue
                 if _rand_x_bias != 0 and _rand_y_bias != 0:
@@ -81,14 +81,14 @@ def main():
 
     # generate train patches
     train_workspaces = workspaces[:-1]
-    train_out_dir = r"F:\registration_patches\train"
+    train_out_dir = r"F:\registration_patches\向水平或竖直方向移动8-13像素\train"
     train_out_name = r"ct_batches_train_{}.pickle"
     for i, train_workspace in enumerate(train_workspaces):
         gen_batches(train_workspace, train_out_dir, train_out_name.format(i), 10)
 
     # generate test patches
     test_workspace = workspaces[-1]
-    test_out_dir = r"F:\registration_patches\test"
+    test_out_dir = r"F:\registration_patches\向水平或竖直方向移动8-13像素\test"
     test_out_name = r"ct_batches_test.pickle"
     gen_batches(test_workspace, test_out_dir, test_out_name, 10)
 

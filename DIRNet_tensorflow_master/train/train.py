@@ -1,30 +1,11 @@
 import os
 import random
-import pickle
 import numpy as np
 import tensorflow as tf
 from DIRNet_tensorflow_master.models.models import DIRNet
 from DIRNet_tensorflow_master.data.log import my_logger
-
-logger = my_logger(folder_name=r"f:\registration_running_data\log", file_name="train.log")
-
-
-class Batches(object):  # 用来惰性加载batches文件的(按病人分开)
-    def __init__(self, total_iter_num: int, batches_filenames: list):
-        self._total_iter_num = total_iter_num
-        self._batches_filenames = tuple(batches_filenames)
-        self._step_length = int(self._total_iter_num / len(self._batches_filenames)) + 1
-        self._curr_batches = None
-        self._curr_index = None
-
-    def get_batches(self, curr_iter_num: int):
-        _index = curr_iter_num // self._step_length
-        if self._curr_index != _index:
-            self._curr_index = _index
-            print("[INFO] lazy_loading {}...".format(self._batches_filenames[self._curr_index]))
-            with open(self._batches_filenames[self._curr_index], 'rb') as f:
-                self._curr_batches = pickle.load(f)
-        return self._curr_batches
+from DIRNet_tensorflow_master.train.train_config import train_config_v1 as get_train_config
+from DIRNet_tensorflow_master.train.batches_generator import Batches
 
 
 def my_train():
@@ -45,14 +26,10 @@ def my_train():
         return np.stack(_bx, axis=0), np.stack(_by, axis=0)
 
     # config
-    config = {
-        "checkpoint_dir": "checkpoint",
-        "image_size": [128, 128],
-        "batch_size": 80,
-        "learning_rate": 1e-4,
-        "iteration_num": 10000,
-        "temp_dir": "temp",
-    }
+    config = get_train_config()
+
+    # logger
+    logger = my_logger(folder_name=config["logger_dir"], file_name=config["logger_name"])
 
     # 文件操作
     if not os.path.exists(config["temp_dir"]):
@@ -61,8 +38,7 @@ def my_train():
         os.mkdir(config["checkpoint_dir"])
 
     # 加载数据
-    batch_filenames = r"F:\registration_patches\train"
-    batch_filenames = [os.path.join(batch_filenames, _) for _ in os.listdir(batch_filenames)]
+    batch_filenames = [os.path.join(config["batch_folder"], _) for _ in os.listdir(config["batch_folder"])]
     batches = Batches(config["iteration_num"], batch_filenames)
 
     # 构建网络

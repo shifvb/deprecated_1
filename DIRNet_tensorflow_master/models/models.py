@@ -1,3 +1,4 @@
+import tensorflow as tf
 from DIRNet_tensorflow_master.models.WarpST import WarpST
 from DIRNet_tensorflow_master.models.ops import *
 
@@ -56,12 +57,31 @@ class DIRNet(object):
         self.z = WarpST(self.x, self.v, config["image_size"])
 
         if self.is_train:
-            self.loss = ncc(self.y, self.z)
-            # self.loss = mse(self.y, self.z)
+            # todo: my version of loss
+            # self.loss_term_1 = ncc(self.y, self.z)
+
+            """_batch, _height, _width, _channel = self.v.shape  # get shape
+            print(_batch, _height, _width, _channel, self.v)  # todo delete it
+            # transpose the y from [batch, height, width, channel] to [batch, channel, height, width]
+            y = tf.transpose(self.v, [0, 3, 1, 2])
+            # flat y to [batch * channel, height * width]
+            y = tf.reshape(y, [_batch * _channel, _height * _width])
+            # calculate the mean of each flat tensor [height * width]
+            _mean = tf.reshape(tf.reduce_mean(y, axis=1), [-1, 1])
+            # calculate the variance of each flatted tensor [height * width]
+            z = tf.square(y - _mean)
+            # calculate the mean of each variance
+            # z = tf.reduce_mean(z, axis=1)
+            z = tf.reduce_mean(z)"""
+
+            # self.loss_term_2 = -z
+            # self.loss = self.loss_term_1 + self.loss_term_2
+            # todo end
+            self.loss = mse(self.y, self.z)
 
             self.optim = tf.train.AdamOptimizer(config["learning_rate"])
-            self.train = self.optim.minimize(
-                - self.loss, var_list=self.vCNN.var_list)
+            # self.train = self.optim.minimize(-self.loss, var_list=self.vCNN.var_list) # todo recover
+            self.train = self.optim.minimize(self.loss, var_list=self.vCNN.var_list)
 
         # self.sess.run(
         #  tf.variables_initializer(self.vCNN.var_list))

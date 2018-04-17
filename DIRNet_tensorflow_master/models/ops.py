@@ -38,10 +38,8 @@ def ncc(x, y):
     mean_y = tf.reduce_mean(y, [1, 2, 3], keep_dims=True)
     mean_x2 = tf.reduce_mean(tf.square(x), [1, 2, 3], keep_dims=True)
     mean_y2 = tf.reduce_mean(tf.square(y), [1, 2, 3], keep_dims=True)
-    stddev_x = tf.reduce_sum(tf.sqrt(
-        mean_x2 - tf.square(mean_x)), [1, 2, 3], keep_dims=True)
-    stddev_y = tf.reduce_sum(tf.sqrt(
-        mean_y2 - tf.square(mean_y)), [1, 2, 3], keep_dims=True)
+    stddev_x = tf.reduce_sum(tf.sqrt(mean_x2 - tf.square(mean_x)), [1, 2, 3], keep_dims=True)
+    stddev_y = tf.reduce_sum(tf.sqrt(mean_y2 - tf.square(mean_y)), [1, 2, 3], keep_dims=True)
     return tf.reduce_mean((x - mean_x) * (y - mean_y) / (stddev_x * stddev_y))
 
 

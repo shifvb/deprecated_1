@@ -51,7 +51,10 @@ def my_train():
     for i in range(config["iteration_num"]):
         batch_x, batch_y = _sample_pair(*(batches.get_batches(i)), config["batch_size"])
         loss = reg.fit(batch_x, batch_y)
-        logger.info("iter {:>6d} : {}".format(i + 1, loss))
+        loss_term_1, loss_term_2 = sess.run([reg.loss_term_1, reg.loss_term_2],
+                                            feed_dict={reg.x: batch_x, reg.y: batch_y})
+        logger.info("iter={:>6d}, loss={:.6f}, loss_term_1={:.6f}, loss_term_2={:.6f}".
+                    format(i + 1, loss, loss_term_1, loss_term_2))
 
         if (i + 1) % 1000 == 0:
             reg.deploy(config["temp_dir"], batch_x, batch_y)

@@ -1,16 +1,13 @@
 import os
 import pickle
 import tensorflow as tf
-from PIL import Image
-import numpy as np
-import SimpleITK as sitk
 from DIRNet_tensorflow_master.models.models import DIRNet
 
 
 def my_test():
     """暂时往里面验证一些图像"""
     # 加载数据
-    batch_x, batch_y = pickle.load(open(r"F:\\registration_patches\\test\ct_batches_test.pickle", 'rb'))
+    batch_x, batch_y = pickle.load(open(r"F:\registration_patches\向水平或竖直方向移动8-13像素\test\ct_batches_test.pickle", 'rb'))
     # batch_x = batch_x / 255
     # batch_y = batch_y / 255
     batch_x = batch_x[100:200]
@@ -23,10 +20,10 @@ def my_test():
 
     # config
     config_dict = {
-        "checkpoint_dir": "checkpoint",
+        "checkpoint_dir": r"F:\registration_running_data\checkpoints",
         "image_size": [128, 128],
         "batch_size": len(batch_x),
-        "result_dir": "result",
+        "result_dir": r"F:\registration_running_data\result",
     }
 
     # file operations

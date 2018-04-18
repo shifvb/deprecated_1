@@ -1,6 +1,7 @@
 import os
 import pickle
 import tensorflow as tf
+import SimpleITK as sitk
 from DIRNet_tensorflow_master.models.models import DIRNet
 
 
@@ -10,13 +11,14 @@ def my_test():
     batch_x, batch_y = pickle.load(open(r"F:\registration_patches\向水平或竖直方向移动8-13像素\test\ct_batches_test.pickle", 'rb'))
     # batch_x = batch_x / 255
     # batch_y = batch_y / 255
-    batch_x = batch_x[100:200]
-    batch_y = batch_y[100:200]
+    batch_x = batch_x[0:len(batch_x): 30]
+    batch_y = batch_y[0:len(batch_y): 30]
     batch_x = (batch_x - batch_x.min()) / (batch_x.max() - batch_x.min())
     batch_y = (batch_y - batch_y.min()) / (batch_y.max() - batch_y.min())
     # show image
-    # sitk.Show(sitk.GetImageFromArray(batch_xs))
-    # sitk.Show(sitk.GetImageFromArray(batch_ys))
+    # sitk.Show(sitk.GetImageFromArray(batch_x))
+    # sitk.Show(sitk.GetImageFromArray(batch_y))
+    # exit()
 
     # config
     config_dict = {

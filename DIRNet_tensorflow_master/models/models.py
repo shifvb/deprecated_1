@@ -58,9 +58,10 @@ class DIRNet(object):
 
         if self.is_train:
             # todo: my version of loss
+            """
             # ncc: from 0.1 -> 0.8, so -ncc is from -0.1 -> -0.8, can be `minimized`
             self.loss_term_1 = -ncc(self.y, self.z)
-
+            
             _batch, _height, _width, _channel = self.v.shape  # get shape
             # transpose the y from [batch, height, width, channel] to [batch, channel, height, width]
             y = tf.transpose(self.v, [0, 3, 1, 2])
@@ -73,10 +74,12 @@ class DIRNet(object):
             # calculate the mean of each variance
             # z = tf.reduce_mean(z, axis=1)
             z = tf.reduce_mean(z)
-
+            
             self.loss_term_2 = z * 3000
+            
             self.loss = self.loss_term_1 + self.loss_term_2
-            # todo end
+            """
+            self.loss = -ncc(self.y, self.z)
 
             # self.loss = mse(self.y, self.z)
             self.optim = tf.train.AdamOptimizer(config["learning_rate"])

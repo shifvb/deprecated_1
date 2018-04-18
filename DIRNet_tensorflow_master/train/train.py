@@ -1,4 +1,5 @@
 import os
+import pickle
 import random
 import numpy as np
 import tensorflow as tf
@@ -6,6 +7,7 @@ from DIRNet_tensorflow_master.models.models import DIRNet
 from DIRNet_tensorflow_master.data.log import my_logger
 from DIRNet_tensorflow_master.train.train_config import train_config_v1 as get_train_config
 from DIRNet_tensorflow_master.train.batches_generator import Batches
+from DIRNet_tensorflow_master.train.train_exchange_obj import TEO
 
 
 def my_train():
@@ -51,10 +53,16 @@ def my_train():
     for i in range(config["iteration_num"]):
         batch_x, batch_y = _sample_pair(*(batches.get_batches(i)), config["batch_size"])
         loss = reg.fit(batch_x, batch_y)
-        loss_term_1, loss_term_2 = sess.run([reg.loss_term_1, reg.loss_term_2],
-                                            feed_dict={reg.x: batch_x, reg.y: batch_y})
-        logger.info("iter={:>6d}, loss={:.6f}, loss_term_1={:.6f}, loss_term_2={:.6f}".
-                    format(i + 1, loss, loss_term_1, loss_term_2))
+        # loss_term_1, loss_term_2 = sess.run([reg.loss_term_1, reg.loss_term_2],
+        #                                     feed_dict={reg.x: batch_x, reg.y: batch_y})
+        # logger.info("iter={:>6d}, loss={:.6f}, loss_term_1={:.6f}, loss_term_2={:.6f}".
+        #             format(i + 1, loss, loss_term_1, loss_term_2))
+        logger.info("iter={:>6d}, loss={:.6f}".format(i + 1, loss))
+
+        if (i + 1) % 10 == 0:
+            _obj = sess.run(TEO.x, {reg.x: batch_x, reg.y: batch_y}),
+            _filename = r"F:\registration_running_data\temp_variables\iter{}.pickle".format(i)
+            pickle.dump(_obj, open(_filename, 'wb'))
 
         if (i + 1) % 1000 == 0:
             reg.deploy(config["temp_dir"], batch_x, batch_y)

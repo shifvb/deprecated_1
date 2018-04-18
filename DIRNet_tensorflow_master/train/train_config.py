@@ -5,10 +5,10 @@ def train_config_v1():
     """get config for training version 1"""
     _config = {
         # train batch folder
-        "batch_folder": r"F:\registration_patches\向水平或竖直方向移动8-13像素\train",
+        "batch_folder": r"F:\registration_patches\向下平移11像素\train",
         # train parameters
         "image_size": [128, 128],
-        "batch_size": 80,
+        "batch_size": 10,
         "learning_rate": 1e-4,
         "iteration_num": 10000,
         # train data folder

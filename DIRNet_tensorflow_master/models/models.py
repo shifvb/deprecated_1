@@ -1,4 +1,5 @@
 import tensorflow as tf
+from DIRNet_tensorflow_master.train.train_exchange_obj import TEO
 from DIRNet_tensorflow_master.models.WarpST import WarpST
 from DIRNet_tensorflow_master.models.ops import *
 
@@ -57,36 +58,34 @@ class DIRNet(object):
         self.z = WarpST(self.x, self.v, config["image_size"])
 
         if self.is_train:
-            # todo: my version of loss
-            """
             # ncc: from 0.1 -> 0.8, so -ncc is from -0.1 -> -0.8, can be `minimized`
             self.loss_term_1 = -ncc(self.y, self.z)
-            
-            _batch, _height, _width, _channel = self.v.shape  # get shape
-            # transpose the y from [batch, height, width, channel] to [batch, channel, height, width]
-            y = tf.transpose(self.v, [0, 3, 1, 2])
-            # flat y to [batch * channel, height * width]
-            y = tf.reshape(y, [_batch * _channel, _height * _width])
-            # calculate the mean of each flat tensor [height * width]
-            _mean = tf.reshape(tf.reduce_mean(y, axis=1), [-1, 1])
-            # calculate the variance of each flatted tensor [height * width]
-            z = tf.square(y - _mean)
-            # calculate the mean of each variance
-            # z = tf.reduce_mean(z, axis=1)
-            z = tf.reduce_mean(z)
-            
-            self.loss_term_2 = z * 3000
-            
-            self.loss = self.loss_term_1 + self.loss_term_2
-            """
-            self.loss = -ncc(self.y, self.z)
+            # todo: my version of loss
 
-            # self.loss = mse(self.y, self.z)
+            # _batch, _height, _width, _channel = self.v.shape  # get shape
+            # # transpose the y from [batch, height, width, channel] to [batch, channel, height, width]
+            # y = tf.transpose(self.v, [0, 3, 1, 2])
+            # # flat y to [batch * channel, height * width]
+            # y = tf.reshape(y, [_batch * _channel, _height * _width])
+            # # calculate the mean of each flat tensor [height * width]
+            # _mean = tf.reshape(tf.reduce_mean(y, axis=1), [-1, 1])
+            # # calculate the variance of each flatted tensor [height * width]
+            # z = tf.square(y - _mean)
+            # # calculate the mean of each variance
+            # # z = tf.reduce_mean(z, axis=1)
+            # z = tf.reduce_mean(z)
+            _mean_x = tf.reduce_mean(TEO.x_diff)
+            _variance_x = tf.reduce_mean(tf.square(TEO.x_diff - _mean_x))
+            _mean_y = tf.reduce_mean(TEO.y_diff)
+            _variance_y = tf.reduce_mean(tf.square(TEO.y_diff - _mean_y))
+            self.loss_term_2 = _variance_y + _variance_x
+            self.loss = self.loss_term_1 + self.loss_term_2
+
+
             self.optim = tf.train.AdamOptimizer(config["learning_rate"])
             self.train = self.optim.minimize(self.loss, var_list=self.vCNN.var_list)
-
-        # self.sess.run(
-        #  tf.variables_initializer(self.vCNN.var_list))
+            # self.loss = mse(self.y, self.z)
+        # self.sess.run(tf.variables_initializer(self.vCNN.var_list))
         self.sess.run(tf.global_variables_initializer())
 
     def fit(self, batch_x, batch_y):

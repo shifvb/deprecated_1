@@ -15,7 +15,7 @@ def main():
 
 
 def gen_graph_from_loss_ver2():
-    workspace = r"F:\registration_results_backup\2018_04_18_08_44_实验五_(使用了NCC+vCNN输出的灰度值方差作为loss函数，图像水平或垂直移动8~13像素)_imgnum=60410_imgsize=128x128_batch=80_iter=10000\log"
+    workspace = r"F:\registration_results_backup\2018_04_18_12_58_实验一_(使用了ncc+loss_term_2, 图像水平或垂直移动8~13像素)_imgnum=60410_imgsize=128x128_batch=10_iter=10000\log"
     with open(os.path.join(workspace, "train.log"), 'r') as f:
         s = f.read()
     s = [_ for _ in s.split('\n') if not _ == ""]
@@ -32,4 +32,4 @@ def gen_graph_from_loss_ver2():
 
 
 if __name__ == '__main__':
-    main()
+    gen_graph_from_loss_ver2()

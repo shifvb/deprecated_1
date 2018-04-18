@@ -1,5 +1,6 @@
 import tensorflow as tf
 from DIRNet_tensorflow_master.models.bicubic_interp import bicubic_interp_2d
+from DIRNet_tensorflow_master.train.train_exchange_obj import TEO
 
 
 def WarpST(U, V, out_size, name='DeformableTransformer', **kwargs):
@@ -50,6 +51,7 @@ def WarpST(U, V, out_size, name='DeformableTransformer', **kwargs):
             x1 = x0 + 1
             y0 = tf.cast(tf.floor(y), 'int32')
             y1 = y0 + 1
+            TEO.x = x0  # todo remove it
 
             x0 = tf.clip_by_value(x0, zero, max_x)
             x1 = tf.clip_by_value(x1, zero, max_x)

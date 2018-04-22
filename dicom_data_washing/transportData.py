@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import pydicom as dicom
 
@@ -42,13 +43,22 @@ def transport(input_folder_path: str, output_folder_path: str):
                     ├...
                     ├── PT_249
     """
-    # check folders
+    # check input folders
     if not os.path.exists(input_folder_path) or not os.path.isdir(input_folder_path):
         raise IOError("输入数据文件夹{} 不存在！".format(input_folder_path))
+    # check output folders
     if not os.path.exists(output_folder_path) or not os.path.isdir(output_folder_path):
         raise IOError("输出数据文件夹{} 不存在！".format(output_folder_path))
-    if len(os.listdir(output_folder_path)) != 0:
-        raise IOError("输出数据文件夹{} 非空！".format(output_folder_path))
+    # check patient folders
+    patient_name = os.path.split(input_folder_path)[-1]
+    out_patient_folder_path = os.path.join(output_folder_path, patient_name)
+    if os.path.exists(out_patient_folder_path):
+        print("[INFO] 输出病例文件夹 \"{}\"存在，跳过".format(out_patient_folder_path))
+        return
+    os.mkdir(out_patient_folder_path)
+    os.mkdir(os.path.join(out_patient_folder_path, "CT"))
+    os.mkdir(os.path.join(out_patient_folder_path, "PT"))
+    print("[INFO] 处理\"{}\"->\"{}\"...".format(input_folder_path, out_patient_folder_path))
 
     # get abs ct folder path
     if "4" in os.listdir(input_folder_path):
@@ -73,10 +83,6 @@ def transport(input_folder_path: str, output_folder_path: str):
         raise IOError("ct图像数量({})应该和pt图像数量({})相等".format(len(ct_filenames), len(pt_filenames)))
 
     # transfer files
-    patient_name = os.path.split(input_folder_path)[-1]
-    os.mkdir(os.path.join(output_folder_path, patient_name))
-    os.mkdir(os.path.join(output_folder_path, patient_name, "CT"))
-    os.mkdir(os.path.join(output_folder_path, patient_name, "PT"))
     for abs_filename in ct_filenames + pt_filenames:
         ds = dicom.read_file(abs_filename)
         instance_number = ds.get('InstanceNumber')
@@ -87,10 +93,11 @@ def transport(input_folder_path: str, output_folder_path: str):
 
 
 def main():
-    input_folder = r'F:\DICOM_Washing\workspace\PT00704-5'
-    # input_folder = r'F:\DICOM_Washing\workspace\PT00998-2'
+    input_folders = [r'F:\DICOM_Washing\workspace\PT00704-5', 'F:\DICOM_Washing\workspace\PT00998-2']
+    # input_folder = r
     output_folder = r'F:\DICOM_Washing\workspace_out'
-    transport(input_folder, output_folder)
+    for input_folder in input_folders:
+        transport(input_folder, output_folder)
 
 
 if __name__ == '__main__':

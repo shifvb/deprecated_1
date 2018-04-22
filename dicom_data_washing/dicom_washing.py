@@ -1,7 +1,7 @@
 import os
 import pydicom
 from pydicom.errors import InvalidDicomError
-from dicom_data_washing.utils import AbsFileNamesGetter, PatientIDFolderGuard
+from dicom_data_washing.utils import AbsFileNamesGetter, PatientIDFolderGuard, single_dicom_wash
 
 
 def dicom_wash(input_folder_path: str, output_folder_path: str):
@@ -46,27 +46,19 @@ def dicom_wash(input_folder_path: str, output_folder_path: str):
     # folder guard
     if PatientIDFolderGuard(input_folder_path, output_folder_path).guard() is False:
         return  # 输出病例文件已存在就跳过
-    # get absolute ct / pt filenames
+    # get absolute ct / pt filename
     abs_ct_filenames, abs_pt_filenames = AbsFileNamesGetter(input_folder_path).get()
-    # transfer files
+    # wash data
     patient_name = os.path.split(input_folder_path)[-1]
     for abs_filename in abs_ct_filenames + abs_pt_filenames:
-        ds = pydicom.read_file(abs_filename)
-        instance_number = ds.get('InstanceNumber')
-        modality = ds.get('Modality')
-        if modality not in ['CT', 'PT']:
-            raise InvalidDicomError("Unknown Modality: {}".format(modality))
-        ds.__setattr__('PatientID', 'secret')
-        ds.__setattr__('PatientBirthDate', '19000101')
-        ds.__setattr__('PatientName', 'secret')
-        ds.__setattr__('PatientAge', '00Y')
-        output_filename = "{}_{:>03}".format(modality, instance_number) + '.dcm'
+        ds, modality, output_filename = single_dicom_wash(pydicom.read_file(abs_filename))
         abs_output_filename = os.path.join(output_folder_path, patient_name, modality, output_filename)
         pydicom.write_file(abs_output_filename, ds)
 
 
 def main():
-    input_folders = [r'F:\DICOM_Washing\workspace\PT00704-5', 'F:\DICOM_Washing\workspace\PT00998-2']
+    workspace = r'F:\DICOM_Washing\backup'
+    input_folders = [os.path.join(workspace, _) for _ in os.listdir(workspace)]
     output_folder = r'F:\DICOM_Washing\workspace_out'
     for input_folder in input_folders:
         dicom_wash(input_folder, output_folder)

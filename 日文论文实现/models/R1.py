@@ -104,9 +104,9 @@ class ConvNetRegressor(object):
         r1_out = self._R1(xy)
         r2_out = self._R2(xy, r1_out)
         r3_out = self._R3(xy, r2_out)
-        z1 = WarpST(self.x, r1_out, [_img_height, _img_width])
-        z2 = WarpST(self.x, r2_out, [_img_height, _img_width])
-        z3 = WarpST(self.x, r3_out, [_img_height, _img_width])
+        z1 = WarpST(self.x, r1_out, [_img_height, _img_width], name="WrapST_1")
+        z2 = WarpST(self.x, r2_out, [_img_height, _img_width], name="WrapST_2")
+        z3 = WarpST(self.x, r3_out, [_img_height, _img_width], name="WrapST_3")
         if _is_train:
             loss_1 = -ncc(self.x, z1)
             loss_2 = -ncc(self.x, z2)

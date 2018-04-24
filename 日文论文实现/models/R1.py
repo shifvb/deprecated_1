@@ -2,7 +2,7 @@ import os
 import tensorflow as tf
 from 日文论文实现.models.utils import conv2d
 from 日文论文实现.models.WarpST import WarpST
-from 日文论文实现.models.ops import ncc
+from 日文论文实现.models.ops import ncc, save_image_with_scale
 
 
 class R1(object):
@@ -99,18 +99,17 @@ class ConvNetRegressor(object):
         self._R3 = R3("R3", is_train=_is_train)
         self.x = tf.placeholder(dtype=tf.float32, shape=[_batch_size, _img_height, _img_width, 1])
         self.y = tf.placeholder(dtype=tf.float32, shape=[_batch_size, _img_height, _img_width, 1])
-
         xy = tf.concat([self.x, self.y], axis=3)  # [batch_size, img_height, img_width, 2]
         r1_out = self._R1(xy)
         r2_out = self._R2(xy, r1_out)
         r3_out = self._R3(xy, r2_out)
-        z1 = WarpST(self.x, r1_out, [_img_height, _img_width], name="WrapST_1")
-        z2 = WarpST(self.x, r2_out, [_img_height, _img_width], name="WrapST_2")
-        z3 = WarpST(self.x, r3_out, [_img_height, _img_width], name="WrapST_3")
+        self._z1 = WarpST(self.x, r1_out, [_img_height, _img_width], name="WrapST_1")
+        self._z2 = WarpST(self.x, r2_out, [_img_height, _img_width], name="WrapST_2")
+        self._z3 = WarpST(self.x, r3_out, [_img_height, _img_width], name="WrapST_3")
         if _is_train:
-            loss_1 = -ncc(self.x, z1)
-            loss_2 = -ncc(self.x, z2)
-            loss_3 = -ncc(self.x, z3)
+            loss_1 = -ncc(self.x, self._z1)
+            loss_2 = -ncc(self.x, self._z2)
+            loss_3 = -ncc(self.x, self._z3)
             self.loss = 1 * loss_1 + 0.5 * loss_2 + 0.25 * loss_3
             _optimizer = tf.train.AdamOptimizer(_learning_rate)
             _var_list = self._R1.var_list + self._R2.var_list + self._R3.var_list
@@ -122,6 +121,15 @@ class ConvNetRegressor(object):
             feed_dict={self.x: batch_x, self.y: batch_y}
         )
         return loss
+
+    def deploy(self, save_folder: str, x, y):
+        z1, z2, z3 = self._sess.run(self._z1, self._z2, self._z3)
+        for i in range(z1.shape[0]):
+            save_image_with_scale(save_folder + "/{:02d}_x.png".format(i + 1), x[i, :, :, 0])
+            save_image_with_scale(save_folder + "/{:02d}_y.png".format(i + 1), y[i, :, :, 0])
+            save_image_with_scale(save_folder + "/{:02d}_z1.png".format(i + 1), z1[i, :, :, 0])
+            save_image_with_scale(save_folder + "/{:02d}_z2.png".format(i + 1), z2[i, :, :, 0])
+            save_image_with_scale(save_folder + "/{:02d}_z3.png".format(i + 1), z3[i, :, :, 0])
 
     def save(self, sess, save_folder: str):
         self._R1.save(sess, os.path.join(save_folder, "R1.ckpt"))

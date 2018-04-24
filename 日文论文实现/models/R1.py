@@ -1,5 +1,8 @@
+import os
 import tensorflow as tf
 from 日文论文实现.models.utils import conv2d
+from 日文论文实现.models.WarpST import WarpST
+from 日文论文实现.models.ops import ncc
 
 
 class R1(object):
@@ -14,8 +17,8 @@ class R1(object):
             x = conv2d(x, "conv_1", 64, 3, 1, "SAME", True, tf.nn.elu, self._is_train)
             x = conv2d(x, "conv_2", 2, 3, 1, "SAME", False, None, self._is_train)
         if self._reuse is None:
-            self._var_list = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self._name)
-            self.saver = tf.train.Saver(self._var_list)
+            self.var_list = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self._name)
+            self.saver = tf.train.Saver(self.var_list)
             self._reuse = True
         return x
 
@@ -43,8 +46,8 @@ class R2(object):
             x = conv2d(x, "conv_1", 64, 3, 1, "SAME", True, tf.nn.elu, self._is_train)
             x = conv2d(x, "conv_2", 2, 3, 1, "SAME", False, None, self._is_train)
         if self._reuse is None:
-            self._var_list = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self._name)
-            self.saver = tf.train.Saver(self._var_list)
+            self.var_list = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self._name)
+            self.saver = tf.train.Saver(self.var_list)
             self._reuse = True
         return x
 
@@ -70,8 +73,8 @@ class R3(object):
             x = conv2d(x, "conv_1", 64, 3, 1, "SAME", True, tf.nn.elu, self._is_train)
             x = conv2d(x, "conv_2", 2, 3, 1, "SAME", False, None, self._is_train)
             if self._reuse is None:
-                self._var_list = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self._name)
-                self.saver = tf.train.Saver(self._var_list)
+                self.var_list = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self._name)
+                self.saver = tf.train.Saver(self.var_list)
                 self._reuse = True
             return x
 
@@ -83,24 +86,49 @@ class R3(object):
 
 
 class ConvNetRegressor(object):
-    def __init__(self, is_train: bool):
-        self._is_train = is_train
+    def __init__(self, sess: tf.Session, is_train: bool, config: dict):
+        self._sess = sess
+        _is_train = is_train
+        _batch_size = config["batch_size"]
+        _img_height = config["img_height"]
+        _img_width = config["img_width"]
+        _learning_rate = config['learning_rate']
 
-    def __call__(self, xy):  # xy:[batch_size, height(=512), width(=512), channel(=2)]
-        self._r1 = R1("R1", is_train=self._is_train)
-        self._r2 = R2("R2", is_train=self._is_train)
-        self._r3 = R3("R3", is_train=self._is_train)
-        r1_out = self._r1(xy)
-        r2_out = self._r2(xy, r1_out)
-        r3_out = self._r3(xy, r2_out)
-        return r1_out, r2_out, r3_out
+        self._R1 = R1("R1", is_train=_is_train)
+        self._R2 = R2("R2", is_train=_is_train)
+        self._R3 = R3("R3", is_train=_is_train)
+        self.x = tf.placeholder(dtype=tf.float32, shape=[_batch_size, _img_height, _img_width, 1])
+        self.y = tf.placeholder(dtype=tf.float32, shape=[_batch_size, _img_height, _img_width, 1])
 
-    def save(self, session, checkpoint_path):
-        self._r1.save(session, checkpoint_path)
-        self._r2.save(session, checkpoint_path)
-        self._r3.save(session, checkpoint_path)
+        xy = tf.concat([self.x, self.y], axis=3)  # [batch_size, img_height, img_width, 2]
+        r1_out = self._R1(xy)
+        r2_out = self._R2(xy, r1_out)
+        r3_out = self._R3(xy, r2_out)
+        z1 = WarpST(self.x, r1_out, [_img_height, _img_width])
+        z2 = WarpST(self.x, r2_out, [_img_height, _img_width])
+        z3 = WarpST(self.x, r3_out, [_img_height, _img_width])
+        if _is_train:
+            loss_1 = -ncc(self.x, z1)
+            loss_2 = -ncc(self.x, z2)
+            loss_3 = -ncc(self.x, z3)
+            self.loss = 1 * loss_1 + 0.5 * loss_2 + 0.25 * loss_3
+            _optimizer = tf.train.AdamOptimizer(_learning_rate)
+            _var_list = self._R1.var_list + self._R2.var_list + self._R3.var_list
+            self.train_step = _optimizer.minimize(self.loss, var_list=_var_list)
 
-    def restore(self, session, checkpoint_path):
-        self._r1.restore(session, checkpoint_path)
-        self._r2.restore(session, checkpoint_path)
-        self._r3.restore(session, checkpoint_path)
+    def fit(self, batch_x, batch_y):
+        _, loss = self._sess.run(
+            fetches=[self.train_step, self.loss],
+            feed_dict={self.x: batch_x, self.y: batch_y}
+        )
+        return loss
+
+    def save(self, sess, save_folder: str):
+        self._R1.save(sess, os.path.join(save_folder, "R1.ckpt"))
+        self._R2.save(sess, os.path.join(save_folder, "R2.ckpt"))
+        self._R3.save(sess, os.path.join(save_folder, "R3.ckpt"))
+
+    def restore(self, sess, save_folder):
+        self._R1.restore(sess, os.path.join(save_folder, "R1.ckpt"))
+        self._R2.restore(sess, os.path.join(save_folder, "R2.ckpt"))
+        self._R3.restore(sess, os.path.join(save_folder, "R3.ckpt"))

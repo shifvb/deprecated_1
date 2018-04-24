@@ -13,7 +13,8 @@ class R1(object):
 
     def __call__(self, x):
         with tf.variable_scope(self._name, reuse=self._reuse):
-            x = tf.nn.avg_pool(x, [1, 128, 128, 1], [1, 128, 128, 1], "SAME")
+            # x = tf.nn.avg_pool(x, [1, 128, 128, 1], [1, 128, 128, 1], "SAME")
+            x = tf.nn.avg_pool(x, [1, 32, 32, 1], [1, 32, 32, 1], "SAME")
             x = conv2d(x, "conv_1", 64, 3, 1, "SAME", True, tf.nn.elu, self._is_train)
             x = conv2d(x, "conv_2", 2, 3, 1, "SAME", False, None, self._is_train)
         if self._reuse is None:
@@ -37,7 +38,8 @@ class R2(object):
 
     def __call__(self, x, R1_out):
         with tf.variable_scope(self._name, reuse=self._reuse):
-            x = tf.nn.avg_pool(x, [1, 64, 64, 1], [1, 64, 64, 1], "SAME")
+            # x = tf.nn.avg_pool(x, [1, 64, 64, 1], [1, 64, 64, 1], "SAME")
+            x = tf.nn.avg_pool(x, [1, 16, 16, 1], [1, 16, 16, 1], "SAME")
             # 将R1的输出插值 [batch_size, 4, 4, 2] -> [batch_size, 8, 8, 2]
             R1_out = tf.image.resize_nearest_neighbor(R1_out, [8, 8])
             # 将R1输出插值的结果concat到R2最大池化的结果上
@@ -66,7 +68,8 @@ class R3(object):
 
     def __call__(self, x, R2_out):
         with tf.variable_scope(self._name, reuse=self._reuse):
-            x = tf.nn.avg_pool(x, [1, 32, 32, 1], [1, 32, 32, 1], "SAME")
+            # x = tf.nn.avg_pool(x, [1, 32, 32, 1], [1, 32, 32, 1], "SAME")
+            x = tf.nn.avg_pool(x, [1, 8, 8, 1], [1, 8, 8, 1], "SAME")
             # 将R2的输出插值 [batch_size, 8, 8, 2] -> [batch_size, 16, 16, 2]
             R2_out = tf.image.resize_nearest_neighbor(R2_out, [16, 16])
             x = tf.concat([R2_out, x], axis=3)
@@ -114,6 +117,7 @@ class ConvNetRegressor(object):
             _optimizer = tf.train.AdamOptimizer(_learning_rate)
             _var_list = self._R1.var_list + self._R2.var_list + self._R3.var_list
             self.train_step = _optimizer.minimize(self.loss, var_list=_var_list)
+        self._sess.run(tf.global_variables_initializer())
 
     def fit(self, batch_x, batch_y):
         _, loss = self._sess.run(

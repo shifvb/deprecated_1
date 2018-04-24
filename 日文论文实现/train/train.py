@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import tensorflow as tf
 from 日文论文实现.models.R1 import R1, R2, R3, ConvNetRegressor
 
@@ -7,8 +8,8 @@ def train():
     config_dict = config_folder_guard({
         # network settings
         "batch_size": 3,
-        "img_height": 512,
-        "img_width": 512,
+        "img_height": 128,
+        "img_width": 128,
 
         # train parameters
         "epoch_num": 10000,
@@ -62,6 +63,10 @@ def get_validate_batches(batch_size: int):
 
 def get_train_batches(batch_size: int):
     batch_x, batch_y = None, None  # todo change it
+    batch_x = np.ones(shape=[batch_size, 128, 128, 1], dtype=np.float32)
+    batch_y = np.zeros(shape=[batch_size, 128, 128, 1], dtype=np.float32)
+    # batch_x = batch_x - batch_x.min() / (batch_x.max() - batch_x.min())
+    # batch_y = batch_y - batch_y.min() / (batch_y.max() - batch_y.min())
     return batch_x, batch_y
 
 

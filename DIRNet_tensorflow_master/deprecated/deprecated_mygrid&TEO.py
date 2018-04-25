@@ -1,5 +1,6 @@
 from DIRNet_tensorflow_master.train.train_exchange_obj import TEO
 from DIRNet_tensorflow_master.train.train_exchange_obj import TEO
+from DIRNet_tensorflow_master.train.train_exchange_obj import TEO
 
 # ---------------------------- WrapST.py ------------------------------
 # my grid start # todo remove it

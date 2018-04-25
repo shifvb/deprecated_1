@@ -18,7 +18,7 @@ def _crop(batch_x: list, batch_y: list, patch_size: tuple, patch_num_per_img: in
     """
     _a, _b = [], []  # 要返回的 batch_x 和 batch_y。怕重名，换个名字
     _shape = batch_x[0].shape  # [512, 512]
-    for i in range(len(batch_x)):
+    for i in range(50, len(batch_x) - 50):
         for j in range(patch_num_per_img):
             # 随机产生x，y坐标
             # _rand_x = random.randint(0, _shape[1] - patch_size[1] - 1)
@@ -86,13 +86,13 @@ def main():
     train_out_dir = r"F:\registration_patches\向右移动11像素\train"
     train_out_name = r"ct_batches_train_{}.pickle"
     for i, train_workspace in enumerate(train_workspaces):
-        gen_batches(train_workspace, train_out_dir, train_out_name.format(i), 10)
+        gen_batches(train_workspace, train_out_dir, train_out_name.format(i), 2)
 
     # generate test patches
     test_workspace = workspaces[-1]
     test_out_dir = r"F:\registration_patches\向右移动11像素\test"
     test_out_name = r"ct_batches_test.pickle"
-    gen_batches(test_workspace, test_out_dir, test_out_name, 10)
+    gen_batches(test_workspace, test_out_dir, test_out_name, 2)
 
 
 if __name__ == '__main__':

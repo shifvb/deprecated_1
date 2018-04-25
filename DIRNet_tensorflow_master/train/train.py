@@ -11,15 +11,16 @@ from DIRNet_tensorflow_master.train.batches_generator import Batches
 def my_train():
     config = config_folder_guard({
         # train batch folder
-        "batch_folder": r"F:\registration_patches\向水平或竖直方向移动8-13像素\train",
+        "batch_folder": r"F:\registration_patches\向右移动11像素\train",
         # train parameters
         "image_size": [128, 128],
-        "batch_size": 80,
+        "batch_size": 10,
         "learning_rate": 1e-5,
         "iteration_num": 20000,
         # train data folder
         "checkpoint_dir": r"F:\registration_running_data\checkpoints",
         "temp_dir": r"F:\registration_running_data\temp",
+        # logger
         "logger_dir": r"f:\registration_running_data\log",
         "logger_name": "train.log",
     })
@@ -42,11 +43,12 @@ def my_train():
 
 
 def config_folder_guard(config_dict: dict):
-    """get config for training version 1"""
     if not os.path.exists(config_dict["checkpoint_dir"]):
         os.makedirs(config_dict["checkpoint_dir"])
     if not os.path.exists(config_dict["temp_dir"]):
         os.makedirs(config_dict["temp_dir"])
+    if not os.path.exists(config_dict["logger_dir"]):
+        os.makedirs(config_dict["logger_dir"])
     return config_dict
 
 

@@ -67,12 +67,13 @@ class DIRNet(object):
         _, loss = self.sess.run([self.train, self.loss], {self.x: batch_x, self.y: batch_y})
         return loss
 
-    def deploy(self, dir_path, x, y):
+    def deploy(self, dir_path, x, y, img_name_start_idx=0):
         z = self.sess.run(self.z, {self.x: x, self.y: y})
         for i in range(z.shape[0]):
-            save_image_with_scale(dir_path + "/{:02d}_x.png".format(i + 1), x[i, :, :, 0])
-            save_image_with_scale(dir_path + "/{:02d}_y.png".format(i + 1), y[i, :, :, 0])
-            save_image_with_scale(dir_path + "/{:02d}_z.png".format(i + 1), z[i, :, :, 0])
+            _idx = img_name_start_idx + i + 1
+            save_image_with_scale(dir_path + "/{:02d}_x.png".format(_idx), x[i, :, :, 0])
+            save_image_with_scale(dir_path + "/{:02d}_y.png".format(_idx), y[i, :, :, 0])
+            save_image_with_scale(dir_path + "/{:02d}_z.png".format(_idx), z[i, :, :, 0])
 
     def save(self, dir_path):
         self.vCNN.save(self.sess, dir_path + "/model.ckpt")

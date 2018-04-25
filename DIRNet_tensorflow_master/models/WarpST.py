@@ -1,6 +1,5 @@
 import tensorflow as tf
 from DIRNet_tensorflow_master.models.bicubic_interp import bicubic_interp_2d
-from DIRNet_tensorflow_master.train.train_exchange_obj import TEO
 
 
 def WarpST(U, V, out_size, name='DeformableTransformer', **kwargs):
@@ -51,20 +50,6 @@ def WarpST(U, V, out_size, name='DeformableTransformer', **kwargs):
             x1 = x0 + 1
             y0 = tf.cast(tf.floor(y), 'int32')
             y1 = y0 + 1
-
-            # my grid start # todo remove it
-            _mygrid = _meshgrid(out_height, out_width)  # [2, h*w]
-            _mygrid = tf.reshape(_mygrid, [-1])  # [2*h*w]
-            _mygrid = tf.tile(_mygrid, tf.stack([num_batch]))  # [n*2*h*w]
-            _mygrid = tf.reshape(_mygrid, tf.stack([num_batch, 2, -1]))  # [n, 2, h*w]
-            _my_x_s = tf.slice(_mygrid, [0, 0, 0], [-1, 1, -1])
-            _my_y_s = tf.slice(_mygrid, [0, 1, 0], [-1, 1, -1])
-            _my_x_s_flat = tf.reshape(_my_x_s, [-1])
-            _my_y_s_flat = tf.reshape(_my_y_s, [-1])
-            _my_x_s_flat = tf.cast((_my_x_s_flat + 1) * (width_f) / 2, 'int32')
-            _my_y_s_flat = tf.cast((_my_y_s_flat + 1) * (height_f) / 2, 'int32')
-            TEO.x_diff = tf.cast(x0 - _my_x_s_flat, 'float32')  # todo remove it
-            TEO.y_diff = tf.cast(y0 - _my_y_s_flat, 'float32')  # todo remove it
 
             x0 = tf.clip_by_value(x0, zero, max_x)
             x1 = tf.clip_by_value(x1, zero, max_x)

@@ -1,2 +1,0 @@
-class TEO(object):
-    pass

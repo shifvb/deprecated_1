@@ -1,5 +1,4 @@
 import tensorflow as tf
-import os
 import skimage.io
 import numpy as np
 

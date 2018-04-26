@@ -8,8 +8,25 @@ from DIRNet_tensorflow_master.data.log import my_logger
 from DIRNet_tensorflow_master.train.batches_generator import Batches, sample_pair
 
 
-def my_train():
-    config = config_folder_guard({
+def my_train(config: dict):
+    # 加载数据
+    batch_filenames = [os.path.join(config["batch_folder"], _) for _ in os.listdir(config["batch_folder"])]
+    batches = Batches(config["iteration_num"], batch_filenames)
+
+    with tf.Session() as sess:
+        reg = DIRNet(sess, config, "DIRNet", is_train=True)
+        sess.run(tf.global_variables_initializer())
+        for i in range(config["iteration_num"]):
+            batch_x, batch_y = sample_pair(*(batches.get_batches(i)), config["batch_size"])
+            loss = reg.fit(batch_x, batch_y)
+            config["logger"].info("iter={:>6d}, loss={:.6f}".format(i + 1, loss))
+            if (i + 1) % 1000 == 0:
+                reg.deploy(config["temp_dir"], batch_x, batch_y)
+                reg.save(config["checkpoint_dir"])
+
+
+def main():
+    config = {
         # train batch folder
         "batch_folder": r"F:\registration_patches\向右移动11像素\train",
         # train parameters
@@ -23,34 +40,16 @@ def my_train():
         # logger
         "logger_dir": r"f:\registration_running_data\log",
         "logger_name": "train.log",
-    })
-    # logger
-    logger = my_logger(folder_name=config["logger_dir"], file_name=config["logger_name"])
-
-    # 加载数据
-    batch_filenames = [os.path.join(config["batch_folder"], _) for _ in os.listdir(config["batch_folder"])]
-    batches = Batches(config["iteration_num"], batch_filenames)
-
-    sess = tf.Session()
-    reg = DIRNet(sess, config, "DIRNet", is_train=True)
-    for i in range(config["iteration_num"]):
-        batch_x, batch_y = sample_pair(*(batches.get_batches(i)), config["batch_size"])
-        loss = reg.fit(batch_x, batch_y)
-        logger.info("iter={:>6d}, loss={:.6f}".format(i + 1, loss))
-        if (i + 1) % 1000 == 0:
-            reg.deploy(config["temp_dir"], batch_x, batch_y)
-            reg.save(config["checkpoint_dir"])
-
-
-def config_folder_guard(config_dict: dict):
-    if not os.path.exists(config_dict["checkpoint_dir"]):
-        os.makedirs(config_dict["checkpoint_dir"])
-    if not os.path.exists(config_dict["temp_dir"]):
-        os.makedirs(config_dict["temp_dir"])
-    if not os.path.exists(config_dict["logger_dir"]):
-        os.makedirs(config_dict["logger_dir"])
-    return config_dict
+    }
+    if not os.path.exists(config["checkpoint_dir"]):
+        os.makedirs(config["checkpoint_dir"])
+    if not os.path.exists(config["temp_dir"]):
+        os.makedirs(config["temp_dir"])
+    if not os.path.exists(config["logger_dir"]):
+        os.makedirs(config["logger_dir"])
+    config["logger"] = my_logger(folder_name=config["logger_dir"], file_name=config["logger_name"])
+    my_train(config)
 
 
 if __name__ == "__main__":
-    my_train()
+    main()

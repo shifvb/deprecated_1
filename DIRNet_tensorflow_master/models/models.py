@@ -61,7 +61,6 @@ class DIRNet(object):
         if self.is_train:
             self.optim = tf.train.AdamOptimizer(config["learning_rate"])
             self.train = self.optim.minimize(self.loss, var_list=self.vCNN.var_list)
-        self.sess.run(tf.global_variables_initializer())
 
     def fit(self, batch_x, batch_y):
         _, loss = self.sess.run([self.train, self.loss], {self.x: batch_x, self.y: batch_y})

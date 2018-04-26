@@ -1,4 +1,6 @@
 import pickle
+import random
+import numpy as np
 
 
 class Batches(object):  # 用来惰性加载batches文件的(按病人分开)
@@ -17,3 +19,18 @@ class Batches(object):  # 用来惰性加载batches文件的(按病人分开)
             with open(self._batches_filenames[self._curr_index], 'rb') as f:
                 self._curr_batches = pickle.load(f)
         return self._curr_batches
+
+
+def sample_pair(bxs, bys, batch_size: int = 64):
+    _bx, _by = [], []
+    for _ in range(batch_size):
+        _index = random.randint(0, len(bxs) - 1)
+        _x, _y = bxs[_index], bys[_index]
+        _min, _max = min(_x.min(), _y.min()), max(_x.max(), _y.max())
+        _x = (_x - _min) / (_max - _min)
+        _y = (_y - _min) / (_max - _min)
+        # _x = _x / 255
+        # _y = _y / 255
+        _bx.append(_x)
+        _by.append(_y)
+    return np.stack(_bx, axis=0), np.stack(_by, axis=0)

@@ -5,7 +5,7 @@ import numpy as np
 import tensorflow as tf
 from DIRNet_tensorflow_master.models.models import DIRNet
 from DIRNet_tensorflow_master.data.log import my_logger
-from DIRNet_tensorflow_master.train.batches_generator import Batches
+from DIRNet_tensorflow_master.train.batches_generator import Batches, sample_pair
 
 
 def my_train():
@@ -34,7 +34,7 @@ def my_train():
     sess = tf.Session()
     reg = DIRNet(sess, config, "DIRNet", is_train=True)
     for i in range(config["iteration_num"]):
-        batch_x, batch_y = _sample_pair(*(batches.get_batches(i)), config["batch_size"])
+        batch_x, batch_y = sample_pair(*(batches.get_batches(i)), config["batch_size"])
         loss = reg.fit(batch_x, batch_y)
         logger.info("iter={:>6d}, loss={:.6f}".format(i + 1, loss))
         if (i + 1) % 1000 == 0:
@@ -50,21 +50,6 @@ def config_folder_guard(config_dict: dict):
     if not os.path.exists(config_dict["logger_dir"]):
         os.makedirs(config_dict["logger_dir"])
     return config_dict
-
-
-def _sample_pair(bxs, bys, batch_size: int = 64):
-    _bx, _by = [], []
-    for _ in range(batch_size):
-        _index = random.randint(0, len(bxs) - 1)
-        _x, _y = bxs[_index], bys[_index]
-        _min, _max = min(_x.min(), _y.min()), max(_x.max(), _y.max())
-        _x = (_x - _min) / (_max - _min)
-        _y = (_y - _min) / (_max - _min)
-        # _x = _x / 255
-        # _y = _y / 255
-        _bx.append(_x)
-        _by.append(_y)
-    return np.stack(_bx, axis=0), np.stack(_by, axis=0)
 
 
 if __name__ == "__main__":

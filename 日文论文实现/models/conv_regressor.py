@@ -93,8 +93,7 @@ class ConvNetRegressor(object):
         self._sess = sess
         _is_train = is_train
         _batch_size = config["batch_size"]
-        _img_height = config["img_height"]
-        _img_width = config["img_width"]
+        _img_height, _img_width = config["image_size"]
         _learning_rate = config['learning_rate']
 
         self._R1 = R1("R1", is_train=_is_train)
@@ -127,7 +126,7 @@ class ConvNetRegressor(object):
         return loss
 
     def deploy(self, save_folder: str, x, y):
-        z1, z2, z3 = self._sess.run(self._z1, self._z2, self._z3)
+        z1, z2, z3 = self._sess.run([self._z1, self._z2, self._z3], feed_dict={self.x: x, self.y: y})
         for i in range(z1.shape[0]):
             save_image_with_scale(save_folder + "/{:02d}_x.png".format(i + 1), x[i, :, :, 0])
             save_image_with_scale(save_folder + "/{:02d}_y.png".format(i + 1), y[i, :, :, 0])

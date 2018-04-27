@@ -9,7 +9,7 @@ def train():
     config_dict = config_folder_guard({
         # train parameters
         "batch_size": 10,
-        "epoch_num": 100000,
+        "epoch_num": 10000,
         "image_size": [128, 128],
         "learning_rate": 1e-5,
         "shuffle_batch": True,
@@ -20,9 +20,12 @@ def train():
     })
 
     # 生成图片集和标签
-    x_dir = r"F:\新建文件夹\resized_ct"
-    y_dir = r"F:\新建文件夹\shift_10_10_ct"
-    batch_x, batch_y = gen_batches(x_dir, y_dir, config_dict)
+    batch_x_dir = r"F:\registratoin_patches\train\resized_ct_image"
+    batch_y_dir = r"F:\registratoin_patches\train\shift_10_10_ct_image"
+    batch_x, batch_y = gen_batches(batch_x_dir, batch_y_dir, config_dict)
+    valid_x_dir = r"F:\registratoin_patches\validate\resized_ct"
+    valid_y_dir = r"F:\registratoin_patches\validate\shift_10_10_ct"
+    valid_x, valid_y = gen_batches(valid_x_dir, valid_y_dir, config_dict)
 
     # 构建网络
     sess = tf.Session()

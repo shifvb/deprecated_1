@@ -33,9 +33,12 @@ def gen_batches(x_dir: str, y_dir: str, config: dict):
 
 def my_train(config: dict):
     # 生成图片集和标签
-    x_dir = r"F:\新建文件夹\shift_10_10_ct"
-    y_dir = r"F:\新建文件夹\resized_ct"
-    batch_x, batch_y = gen_batches(x_dir, y_dir, config)
+    batch_x_dir = r"F:\registratoin_patches\train\resized_ct_image"
+    batch_y_dir = r"F:\registratoin_patches\train\shift_10_10_ct_image"
+    batch_x, batch_y = gen_batches(batch_x_dir, batch_y_dir, config)
+    valid_x_dir = r"F:\registratoin_patches\validate\resized_ct"
+    valid_y_dir = r"F:\registratoin_patches\validate\shift_10_10_ct"
+    valid_x, valid_y = gen_batches(valid_x_dir, valid_y_dir, config)
     # 开始训练
     with tf.Session() as sess:
         reg = DIRNet(sess, config, "DIRNet", is_train=True)
@@ -47,7 +50,8 @@ def my_train(config: dict):
             loss = reg.fit(_bx, _by)
             config["logger"].info("iter={:>6d}, loss={:.6f}".format(i + 1, loss))
             if (i + 1) % 1000 == 0:
-                reg.deploy(config["temp_dir"], _bx, _by)
+                _valid_x, _valid_y = sess.run([valid_x, valid_y])
+                reg.deploy(config["temp_dir"], _valid_x, _valid_y)
                 reg.save(config["checkpoint_dir"])
         coord.request_stop()
         coord.join(threads)
@@ -57,10 +61,10 @@ def main():
     config = {
         # train parameters
         "image_size": [128, 128],
-        "batch_size": 10,
+        "batch_size": 80,
         "learning_rate": 1e-5,
         "iteration_num": 20000,
-        "shuffle_batch": False,
+        "shuffle_batch": True,
         # train data folder
         "checkpoint_dir": r"F:\registration_running_data\checkpoints",
         "temp_dir": r"F:\registration_running_data\temp",

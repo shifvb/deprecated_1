@@ -1,38 +1,42 @@
 import os
-import pickle
-import random
 import numpy as np
 import tensorflow as tf
 from DIRNet_tensorflow_master.models.models import DIRNet
-from DIRNet_tensorflow_master.data.log import my_logger
-from DIRNet_tensorflow_master.train.batches_generator import Batches, sample_pair
-from learn_tensorflow.slice_input_producer_and_batch_examples.slice_input_producer_and_batch import \
-    get_filenames_and_labels
+from DIRNet_tensorflow_master.train.my_log import my_logger
 from PIL import Image
 
 
-def f(input_tensor):
-    L = []
-    for i in input_tensor:
-        L.append(np.array(Image.open(i), dtype=np.uint8))
-    return np.stack(L)
+def gen_batches(x_dir: str, y_dir: str, config: dict):
+    """
+    给定x文件夹和y文件夹，生成batch tensor的函数
+    :param x_dir: Moving Image文件夹绝对路径
+    :param y_dir: Fixed Image 文件夹绝对路径
+    :param config: config["shuffle_batch"]：是否shuffle batch
+                    config["batch_size"]：batch大小
+                    config["image_size"]：图像的height和width，tuple类型
+    :return: Tensor('batch_x', dtype=float32, shape=[batch_size, img_height, img_width, 1])
+            Tensor('batch_y', dtype=float32, shape=[batch_size, img_height, img_width, 1])
+    """
+    x_arr = [os.path.join(x_dir, _) for _ in os.listdir(x_dir)]
+    y_arr = [os.path.join(y_dir, _) for _ in os.listdir(y_dir)]
+    input_queue = tf.train.slice_input_producer([x_arr, y_arr], shuffle=config["shuffle_batch"])
+    batch_x, batch_y = tf.train.batch(input_queue, batch_size=config["batch_size"])
+
+    def _f(input_tensor, batch_size: int, img_height: int, img_width: int, channels: int):
+        _ = np.stack([np.array(Image.open(img_name)) for img_name in input_tensor], axis=0) / 255
+        return _.astype(np.float32).reshape([batch_size, img_height, img_width, channels])
+
+    batch_x = tf.py_func(_f, [batch_x, config["batch_size"], *config["image_size"], 1], tf.float32)
+    batch_y = tf.py_func(_f, [batch_y, config["batch_size"], *config["image_size"], 1], tf.float32)
+    return batch_x, batch_y
 
 
 def my_train(config: dict):
     # 生成图片集和标签
-    x_arr = r"F:\新建文件夹\resized_ct"
-    x_arr = [os.path.join(x_arr, _) for _ in os.listdir(x_arr)]
-    y_arr = r"F:\新建文件夹\shift_10_10_ct"
-    y_arr = [os.path.join(y_arr, _) for _ in os.listdir(y_arr)]
-    input_queue = tf.train.slice_input_producer([x_arr, y_arr], shuffle=config["shuffle_batch"])
-    batch_x, batch_y = tf.train.batch(input_queue, batch_size=config["batch_size"])
-    batch_x = tf.py_func(f, [batch_x], tf.uint8)
-    batch_y = tf.py_func(f, [batch_y], tf.uint8)
-    batch_x = tf.reshape(batch_x, [config["batch_size"], 128, 128, 1])
-    batch_y = tf.reshape(batch_y, [config["batch_size"], 128, 128, 1])
-    batch_x = batch_x / 255
-    batch_y = batch_y / 255
-
+    x_dir = r"F:\新建文件夹\shift_10_10_ct"
+    y_dir = r"F:\新建文件夹\resized_ct"
+    batch_x, batch_y = gen_batches(x_dir, y_dir, config)
+    # 开始训练
     with tf.Session() as sess:
         reg = DIRNet(sess, config, "DIRNet", is_train=True)
         sess.run(tf.global_variables_initializer())
@@ -42,7 +46,7 @@ def my_train(config: dict):
             _bx, _by = sess.run([batch_x, batch_y])
             loss = reg.fit(_bx, _by)
             config["logger"].info("iter={:>6d}, loss={:.6f}".format(i + 1, loss))
-            if (i + 1) % 100 == 0:
+            if (i + 1) % 1000 == 0:
                 reg.deploy(config["temp_dir"], _bx, _by)
                 reg.save(config["checkpoint_dir"])
         coord.request_stop()
@@ -51,8 +55,6 @@ def my_train(config: dict):
 
 def main():
     config = {
-        # train batch folder
-        "batch_folder": r"F:\registration_patches\向右移动11像素\train",
         # train parameters
         "image_size": [128, 128],
         "batch_size": 10,
@@ -64,7 +66,6 @@ def main():
         "temp_dir": r"F:\registration_running_data\temp",
         # logger
         "logger_dir": r"f:\registration_running_data\log",
-        "logger_name": "train.log",
     }
     if not os.path.exists(config["checkpoint_dir"]):
         os.makedirs(config["checkpoint_dir"])
@@ -72,7 +73,7 @@ def main():
         os.makedirs(config["temp_dir"])
     if not os.path.exists(config["logger_dir"]):
         os.makedirs(config["logger_dir"])
-    config["logger"] = my_logger(folder_name=config["logger_dir"], file_name=config["logger_name"])
+    config["logger"] = my_logger(folder_name=config["logger_dir"], file_name="train.log")
     my_train(config)
 
 

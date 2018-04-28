@@ -10,6 +10,7 @@ def train():
         # train parameters
         "batch_size": 10,
         "epoch_num": 10000,
+        "save_interval": 100,
         "image_size": [128, 128],
         "learning_rate": 1e-5,
         "shuffle_batch": True,
@@ -38,8 +39,9 @@ def train():
         _bx, _by = sess.run([batch_x, batch_y])
         loss = reg.fit(_bx, _by)
         print("[INFO] epoch={:>5}, loss={:.3f}".format(i, loss))
-        if (i + 1) % 1000 == 0:
-            reg.deploy(config_dict["validate_dir"], _bx, _by)
+        if (i + 1) % config_dict["save_interval"] == 0:
+            _vx, _vy = sess.run([valid_x, valid_y])
+            reg.deploy(config_dict["validate_dir"], _vx, _vy)
             reg.save(sess, config_dict["checkpoint_dir"])
 
     # 回收资源
@@ -50,7 +52,10 @@ def train():
 
 def config_folder_guard(config_dict: dict):
     """防止出现文件夹不存在的情况"""
-    pass  # todo: change it, do some guard things
+    if not os.path.exists(config_dict["checkpoint_dir"]):
+        os.makedirs(config_dict["checkpoint_dir"])
+    if not os.path.exists(config_dict["validate_dir"]):
+        os.makedirs(config_dict["validate_dir"])
     return config_dict
 
 

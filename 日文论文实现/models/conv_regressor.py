@@ -109,9 +109,9 @@ class ConvNetRegressor(object):
         self._z2 = WarpST(self.x, r2_out, [_img_height, _img_width], name="WrapST_2")
         self._z3 = WarpST(self.x, r3_out, [_img_height, _img_width], name="WrapST_3")
         if _is_train:
-            loss_1 = -ncc(self.x, self._z1)
-            loss_2 = -ncc(self.x, self._z2)
-            loss_3 = -ncc(self.x, self._z3)
+            loss_1 = -ncc(self.y, self._z1)
+            loss_2 = -ncc(self.y, self._z2)
+            loss_3 = -ncc(self.y, self._z3)
             self.loss = 1 * loss_1 + 0.5 * loss_2 + 0.25 * loss_3
             _optimizer = tf.train.AdamOptimizer(_learning_rate)
             _var_list = self._R1.var_list + self._R2.var_list + self._R3.var_list

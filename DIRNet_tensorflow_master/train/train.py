@@ -2,7 +2,6 @@ import os
 import numpy as np
 import tensorflow as tf
 from DIRNet_tensorflow_master.models.models import DIRNet
-from DIRNet_tensorflow_master.train.my_log import my_logger
 from PIL import Image
 
 
@@ -68,16 +67,12 @@ def main():
         # train data folder
         "checkpoint_dir": r"F:\registration_running_data\checkpoints",
         "temp_dir": r"F:\registration_running_data\temp",
-        # logger
-        "logger_dir": r"f:\registration_running_data\log",
     }
     if not os.path.exists(config["checkpoint_dir"]):
         os.makedirs(config["checkpoint_dir"])
     if not os.path.exists(config["temp_dir"]):
         os.makedirs(config["temp_dir"])
-    if not os.path.exists(config["logger_dir"]):
-        os.makedirs(config["logger_dir"])
-    config["logger"] = my_logger(folder_name=config["logger_dir"], file_name="train.log")
+
     my_train(config)
 
 

@@ -22,3 +22,15 @@ def my_logger(folder_name: str, file_name: str):
     _logger.addHandler(console)
     _logger.addHandler(file_handler)
     return _logger
+
+
+from DIRNet_tensorflow_master.train.my_log import my_logger
+
+# logger
+config = {
+    "logger_dir": r"f:\registration_running_data\log"
+}
+
+if not os.path.exists(config["logger_dir"]):
+    os.makedirs(config["logger_dir"])
+config["logger"] = my_logger(folder_name=config["logger_dir"], file_name="train.log")

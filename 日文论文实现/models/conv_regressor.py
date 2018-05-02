@@ -107,11 +107,11 @@ class ConvNetRegressor(object):
         self._z1 = WarpST(self.x, r1_out, [_img_height, _img_width], name="WrapST_1")
         self._z2 = WarpST(self.x, r2_out, [_img_height, _img_width], name="WrapST_2")
         self._z3 = WarpST(self.x, r3_out, [_img_height, _img_width], name="WrapST_3")
+        self.loss_1 = -ncc(self.y, self._z1)
+        self.loss_2 = -ncc(self.y, self._z2)
+        self.loss_3 = -ncc(self.y, self._z3)
+        self.loss = 1 * self.loss_1 + 0.5 * self.loss_2 + 0.25 * self.loss_3
         if _is_train:
-            loss_1 = -ncc(self.y, self._z1)
-            loss_2 = -ncc(self.y, self._z2)
-            loss_3 = -ncc(self.y, self._z3)
-            self.loss = 1 * loss_1 + 0.5 * loss_2 + 0.25 * loss_3
             _optimizer = tf.train.AdamOptimizer(config['learning_rate'])
             _var_list = self._R1.var_list + self._R2.var_list + self._R3.var_list
             self.train_step = _optimizer.minimize(self.loss, var_list=_var_list)
@@ -126,12 +126,16 @@ class ConvNetRegressor(object):
 
     def deploy(self, save_folder: str, x, y):
         z1, z2, z3 = self._sess.run([self._z1, self._z2, self._z3], feed_dict={self.x: x, self.y: y})
+        loss, loss_1, loss_2, loss_3 = self._sess.run([self.loss, self.loss_1, self.loss_2, self.loss_3],
+                                                      feed_dict={self.x: x, self.y: y})
         for i in range(z1.shape[0]):
             save_image_with_scale(save_folder + "/{:02d}_x.png".format(i + 1), x[i, :, :, 0])
             save_image_with_scale(save_folder + "/{:02d}_y.png".format(i + 1), y[i, :, :, 0])
             save_image_with_scale(save_folder + "/{:02d}_z1.png".format(i + 1), z1[i, :, :, 0])
             save_image_with_scale(save_folder + "/{:02d}_z2.png".format(i + 1), z2[i, :, :, 0])
             save_image_with_scale(save_folder + "/{:02d}_z3.png".format(i + 1), z3[i, :, :, 0])
+
+        return loss, loss_1, loss_2, loss_3
 
     def save(self, sess, save_folder: str):
         self._R1.save(sess, os.path.join(save_folder, "R1.ckpt"))

@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import tensorflow as tf
 from 日文论文实现.models.conv_regressor import ConvNetRegressor
 from 日文论文实现.train.train import gen_batches
@@ -28,9 +29,20 @@ def deploy():
 
     # 生成结果
     reg.restore(sess, config_dict["checkpoint_dir"])
+    result_list = []
     for i in range(len(os.listdir(deploy_y_dir)) // config_dict["batch_size"]):
         _dx, _dy = sess.run([deploy_x, deploy_y])
-        reg.deploy(config_dict["result_dir"], _dx, _dy)
+        result = reg.deploy(config_dict["result_dir"], _dx, _dy)
+        result_list.append(result)
+
+    # 回收资源
+    coord.request_stop()
+    coord.join(threads)
+    sess.close()
+
+    # 计算ncc
+    loss_arr = np.array(result_list)
+    print(loss_arr.mean(axis=0))
 
 
 def config_folder_guard(config_dict: dict):

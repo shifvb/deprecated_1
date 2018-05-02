@@ -94,7 +94,6 @@ class ConvNetRegressor(object):
         _is_train = is_train
         _batch_size = config["batch_size"]
         _img_height, _img_width = config["image_size"]
-        _learning_rate = config['learning_rate']
 
         self._R1 = R1("R1", is_train=_is_train)
         self._R2 = R2("R2", is_train=_is_train)
@@ -113,7 +112,7 @@ class ConvNetRegressor(object):
             loss_2 = -ncc(self.y, self._z2)
             loss_3 = -ncc(self.y, self._z3)
             self.loss = 1 * loss_1 + 0.5 * loss_2 + 0.25 * loss_3
-            _optimizer = tf.train.AdamOptimizer(_learning_rate)
+            _optimizer = tf.train.AdamOptimizer(config['learning_rate'])
             _var_list = self._R1.var_list + self._R2.var_list + self._R3.var_list
             self.train_step = _optimizer.minimize(self.loss, var_list=_var_list)
         self._sess.run(tf.global_variables_initializer())

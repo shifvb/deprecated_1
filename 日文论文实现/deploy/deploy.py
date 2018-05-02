@@ -1,33 +1,44 @@
+import os
 import tensorflow as tf
 from 日文论文实现.models.conv_regressor import ConvNetRegressor
+from 日文论文实现.train.train import gen_batches
 
 
 def deploy():
     config_dict = config_folder_guard({
         # network settings
-        "batch_size": 3,
-        "img_height": 512,
-        "img_width": 512,
+        "batch_size": 40,
+        "image_size": [128, 128],
+        "shuffle_batch": False,
 
         # folder path
-        "checkpoint_folder": "",  # todo remove it
-        "test_visualization_folder": "",  # todo change it
+        "checkpoint_dir": r"F:\registration_running_data\checkpoints",
+        "result_dir": r"F:\registration_running_data\result",
     })
+    # 获取图片路径集
+    deploy_x_dir = r"F:\registration_patches\version_3(pt-ct)\validate\shift_10_10_pt"
+    deploy_y_dir = r"F:\registration_patches\version_3(pt-ct)\validate\resized_ct"
+    deploy_x, deploy_y = gen_batches(deploy_x_dir, deploy_y_dir, config_dict)
+
+    # 构建网络
     sess = tf.Session()
     reg = ConvNetRegressor(sess, is_train=False, config=config_dict)
-    reg.restore(sess, config_dict["checkpoint_folder"])
-    batch_x, batch_y = get_deploy_batches(config_dict["batch_size"])
-    reg.deploy(config_dict["test_visualization_folder"], batch_x, batch_y)
+    coord = tf.train.Coordinator()
+    threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
-
-def get_deploy_batches(batch_size: int):
-    batch_x, batch_y = None, None  # todo change it
-    return batch_x, batch_y
+    # 生成结果
+    reg.restore(sess, config_dict["checkpoint_dir"])
+    for i in range(len(os.listdir(deploy_y_dir)) // config_dict["batch_size"]):
+        _dx, _dy = sess.run([deploy_x, deploy_y])
+        reg.deploy(config_dict["result_dir"], _dx, _dy)
 
 
 def config_folder_guard(config_dict: dict):
     """防止出现文件夹不存在的情况"""
-    pass  # todo: change it, do some guard things
+    if not os.path.exists(config_dict["checkpoint_dir"]):
+        raise IOError("check point dir '{}' does not exist!".format(config_dict["checkpoint_dir"]))
+    if not os.path.exists(config_dict["result_dir"]):
+        os.makedirs(config_dict["result_dir"])
     return config_dict
 
 

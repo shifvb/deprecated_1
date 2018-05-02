@@ -18,11 +18,11 @@ def train():
         "temp_dir": r"F:\registration_running_data\temp",
     })
     # 生成图片集和标签
-    batch_x_dir = r"F:\registratoin_patches\train\resized_ct_image"
-    batch_y_dir = r"F:\registratoin_patches\train\shift_10_10_ct_image"
+    batch_x_dir = r"F:\registration_patches\train\resized_ct_image"
+    batch_y_dir = r"F:\registration_patches\train\shift_10_10_ct_image"
     batch_x, batch_y = gen_batches(batch_x_dir, batch_y_dir, config)
-    valid_x_dir = r"F:\registratoin_patches\validate\resized_ct"
-    valid_y_dir = r"F:\registratoin_patches\validate\shift_10_10_ct"
+    valid_x_dir = r"F:\registration_patches\validate\resized_ct"
+    valid_y_dir = r"F:\registration_patches\validate\shift_10_10_ct"
     valid_x, valid_y = gen_batches(valid_x_dir, valid_y_dir, config)
     # 开始训练
     with tf.Session() as sess:

@@ -21,11 +21,11 @@ def train():
     })
 
     # 生成图片集和标签
-    batch_x_dir = r"F:\registratoin_patches\version_3(pt-ct)\train\shift_10_10_pt"
-    batch_y_dir = r"F:\registratoin_patches\version_3(pt-ct)\train\resized_ct"
+    batch_x_dir = r"F:\registration_patches\version_3(pt-ct)\train\shift_10_10_pt"
+    batch_y_dir = r"F:\registration_patches\version_3(pt-ct)\train\resized_ct"
     batch_x, batch_y = gen_batches(batch_x_dir, batch_y_dir, config_dict)
-    valid_x_dir = r"F:\registratoin_patches\version_3(pt-ct)\validate\shift_10_10_pt"
-    valid_y_dir = r"F:\registratoin_patches\version_3(pt-ct)\validate\resized_ct"
+    valid_x_dir = r"F:\registration_patches\version_3(pt-ct)\validate\shift_10_10_pt"
+    valid_y_dir = r"F:\registration_patches\version_3(pt-ct)\validate\resized_ct"
     valid_x, valid_y = gen_batches(valid_x_dir, valid_y_dir, config_dict)
 
     # 构建网络

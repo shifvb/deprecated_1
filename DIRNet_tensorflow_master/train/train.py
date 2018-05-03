@@ -9,20 +9,20 @@ def train():
     config = config_folder_guard({
         # train parameters
         "image_size": [128, 128],
-        "batch_size": 80,
+        "batch_size": 10,
         "learning_rate": 1e-5,
-        "iteration_num": 20000,
+        "iteration_num": 10000,
         "shuffle_batch": True,
         # train data folder
         "checkpoint_dir": r"F:\registration_running_data\checkpoints",
         "temp_dir": r"F:\registration_running_data\temp",
     })
     # 生成图片集和标签
-    batch_x_dir = r"F:\registration_patches\train\resized_ct_image"
-    batch_y_dir = r"F:\registration_patches\train\shift_10_10_ct_image"
+    batch_x_dir = r"F:\registration_patches\version_3(pt-ct)\train\normalized_pt"
+    batch_y_dir = r"F:\registration_patches\version_3(pt-ct)\train\resized_ct"
     batch_x, batch_y = gen_batches(batch_x_dir, batch_y_dir, config)
-    valid_x_dir = r"F:\registration_patches\validate\resized_ct"
-    valid_y_dir = r"F:\registration_patches\validate\shift_10_10_ct"
+    valid_x_dir = r"F:\registration_patches\version_3(pt-ct)\validate\normolized_pt"
+    valid_y_dir = r"F:\registration_patches\version_3(pt-ct)\validate\resized_ct"
     valid_x, valid_y = gen_batches(valid_x_dir, valid_y_dir, config)
     # 开始训练
     with tf.Session() as sess:
@@ -33,7 +33,7 @@ def train():
         for i in range(config["iteration_num"]):
             _bx, _by = sess.run([batch_x, batch_y])
             loss = reg.fit(_bx, _by)
-            config["logger"].info("iter={:>6d}, loss={:.6f}".format(i + 1, loss))
+            print("iter={:>6d}, loss={:.6f}".format(i + 1, loss))
             if (i + 1) % 1000 == 0:
                 _valid_x, _valid_y = sess.run([valid_x, valid_y])
                 reg.deploy(config["temp_dir"], _valid_x, _valid_y)

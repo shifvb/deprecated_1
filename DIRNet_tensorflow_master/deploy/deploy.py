@@ -1,44 +1,58 @@
 import os
-import pickle
+import numpy as np
 import tensorflow as tf
-import SimpleITK as sitk
 from DIRNet_tensorflow_master.models.models import DIRNet
+from DIRNet_tensorflow_master.train.train import gen_batches
 
 
-def my_test():
-    # 加载数据
-    batch_x, batch_y = pickle.load(open(r"F:\registration_patches\向右移动11像素\test\ct_batches_test.pickle", 'rb'))
-
-    # config
-    config_dict = test_config_guard({
-        "checkpoint_dir": r"F:\registration_running_data\checkpoints",
-        "image_size": [128, 128],
+def deploy():
+    config_dict = config_folder_guard({
+        # network settings
         "batch_size": 10,
+        "image_size": [128, 128],
+        "shuffle_batch": False,
+
+        # folder path
+        "checkpoint_dir": r"F:\registration_running_data\checkpoints",
         "result_dir": r"F:\registration_running_data\result",
     })
-    # create network
+    # 获取图片路径集
+    deploy_x_dir = r"F:\registration_patches\version_3(pt-ct)\validate\normolized_pt"
+    deploy_y_dir = r"F:\registration_patches\version_3(pt-ct)\validate\resized_ct"
+    deploy_x, deploy_y = gen_batches(deploy_x_dir, deploy_y_dir, config_dict)
+
+    # 构建网络
     sess = tf.Session()
     reg = DIRNet(sess, config_dict, "DIRNet", is_train=False)
+    coord = tf.train.Coordinator()
+    threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+
+    # 生成结果
     reg.restore(config_dict["checkpoint_dir"])
+    result_list = []
+    for i in range(len(os.listdir(deploy_y_dir)) // config_dict["batch_size"]):
+        _dx, _dy = sess.run([deploy_x, deploy_y])
+        result = reg.deploy(config_dict["result_dir"], _dx, _dy, i * config_dict["batch_size"])
+        result_list.append(result)
 
-    # register
-    _iter_num = len(batch_x) // config_dict["batch_size"]
-    for i in range(_iter_num):
-        _start_index, _end_index = i * config_dict["batch_size"], (i + 1) * config_dict["batch_size"]
-        _batch_x = batch_x[_start_index:_end_index]
-        _batch_y = batch_y[_start_index:_end_index]
-        _batch_x = (_batch_x - _batch_x.min()) / (_batch_x.max() - _batch_x.min())
-        _batch_y = (_batch_y - _batch_y.min()) / (_batch_y.max() - _batch_y.min())
-        reg.deploy(config_dict["result_dir"], _batch_x, _batch_y, img_name_start_idx=int(i * config_dict["batch_size"]))
+    # 回收资源
+    coord.request_stop()
+    coord.join(threads)
+    sess.close()
+
+    # 计算ncc
+    loss_arr = np.array(result_list)
+    print(loss_arr.mean())
 
 
-def test_config_guard(config_dict: dict):
+def config_folder_guard(config_dict: dict):
+    """防止出现文件夹不存在的情况"""
+    if not os.path.exists(config_dict["checkpoint_dir"]):
+        raise IOError("check point dir '{}' does not exist!".format(config_dict["checkpoint_dir"]))
     if not os.path.exists(config_dict["result_dir"]):
         os.makedirs(config_dict["result_dir"])
-    if not os.path.exists(config_dict["checkpoint_dir"]):
-        raise IOError("checkpoint_dir does not exists!")
     return config_dict
 
 
 if __name__ == "__main__":
-    my_test()
+    deploy()

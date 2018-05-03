@@ -134,17 +134,18 @@ class ConvNetRegressor(object):
         )
         return loss
 
-    def deploy(self, save_folder: str, x, y):
+    def deploy(self, save_folder: str, x, y, img_name_start_idx=0):
         z1, z2, z3, z4 = self._sess.run([self._z1, self._z2, self._z3, self._z4], feed_dict={self.x: x, self.y: y})
         loss, loss_1, loss_2, loss_3 = self._sess.run([self.loss, self.loss_1, self.loss_2, self.loss_3],
                                                       feed_dict={self.x: x, self.y: y})
         for i in range(z1.shape[0]):
-            save_image_with_scale(save_folder + "/{:02d}_x.png".format(i + 1), x[i, :, :, 0])
-            save_image_with_scale(save_folder + "/{:02d}_y.png".format(i + 1), y[i, :, :, 0])
-            save_image_with_scale(save_folder + "/{:02d}_z1.png".format(i + 1), z1[i, :, :, 0])
-            save_image_with_scale(save_folder + "/{:02d}_z2.png".format(i + 1), z2[i, :, :, 0])
-            save_image_with_scale(save_folder + "/{:02d}_z3.png".format(i + 1), z3[i, :, :, 0])
-            save_image_with_scale(save_folder + "/{:02d}_z4.png".format(i + 1), z4[i, :, :, 0])
+            _idx = img_name_start_idx + i + 1
+            save_image_with_scale(save_folder + "/{:02d}_x.png".format(_idx), x[i, :, :, 0])
+            save_image_with_scale(save_folder + "/{:02d}_y.png".format(_idx), y[i, :, :, 0])
+            save_image_with_scale(save_folder + "/{:02d}_z1.png".format(_idx), z1[i, :, :, 0])
+            save_image_with_scale(save_folder + "/{:02d}_z2.png".format(_idx), z2[i, :, :, 0])
+            save_image_with_scale(save_folder + "/{:02d}_z3.png".format(_idx), z3[i, :, :, 0])
+            save_image_with_scale(save_folder + "/{:02d}_z4.png".format(_idx), z4[i, :, :, 0])
 
         return loss, loss_1, loss_2, loss_3
 

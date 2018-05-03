@@ -32,7 +32,7 @@ def deploy():
     result_list = []
     for i in range(len(os.listdir(deploy_y_dir)) // config_dict["batch_size"]):
         _dx, _dy = sess.run([deploy_x, deploy_y])
-        result = reg.deploy(config_dict["result_dir"], _dx, _dy)
+        result = reg.deploy(config_dict["result_dir"], _dx, _dy, i * config_dict["batch_size"])
         result_list.append(result)
 
     # 回收资源

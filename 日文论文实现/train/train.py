@@ -10,7 +10,7 @@ def train():
         # train parameters
         "batch_size": 10,
         "epoch_num": 10000,
-        "save_interval": 500,
+        "save_interval": 1000,
         "image_size": [128, 128],
         "learning_rate": 1e-5,
         "shuffle_batch": True,

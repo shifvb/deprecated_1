@@ -90,31 +90,41 @@ class R3(object):
 
 class ConvNetRegressor(object):
     def __init__(self, sess: tf.Session, is_train: bool, config: dict):
+        # get train parameters
         self._sess = sess
         _is_train = is_train
         _batch_size = config["batch_size"]
         _img_height, _img_width = config["image_size"]
-
-        self._R1 = R1("R1", is_train=_is_train)
-        self._R2 = R2("R2", is_train=_is_train)
-        self._R3 = R3("R3", is_train=_is_train)
         self.x = tf.placeholder(dtype=tf.float32, shape=[_batch_size, _img_height, _img_width, 1])
         self.y = tf.placeholder(dtype=tf.float32, shape=[_batch_size, _img_height, _img_width, 1])
         xy = tf.concat([self.x, self.y], axis=3)  # [batch_size, img_height, img_width, 2]
+        # construct sub-networks
+        self._R1 = R1("R1", is_train=_is_train)
+        self._R2 = R2("R2", is_train=_is_train)
+        self._R3 = R3("R3", is_train=_is_train)
         r1_out = self._R1(xy)
         r2_out = self._R2(xy, r1_out)
         r3_out = self._R3(xy, r2_out)
+        # construct Spatial Transformers
         self._z1 = WarpST(self.x, r1_out, [_img_height, _img_width], name="WrapST_1")
         self._z2 = WarpST(self.x, r2_out, [_img_height, _img_width], name="WrapST_2")
         self._z3 = WarpST(self.x, r3_out, [_img_height, _img_width], name="WrapST_3")
+        r4_out = tf.image.resize_nearest_neighbor(r1_out, [16, 16]) + \
+                 tf.image.resize_nearest_neighbor(r2_out, [16, 16]) + \
+                 tf.image.resize_nearest_neighbor(r3_out, [16, 16])
+        r4_out = r4_out / 3
+        self._z4 = WarpST(self.x, r4_out, [_img_height, _img_width], name="WrapST_4")
+        # calculate loss
         self.loss_1 = -ncc(self.y, self._z1)
         self.loss_2 = -ncc(self.y, self._z2)
         self.loss_3 = -ncc(self.y, self._z3)
         self.loss = 1 * self.loss_1 + 0.5 * self.loss_2 + 0.25 * self.loss_3
+        # construct train step
         if _is_train:
             _optimizer = tf.train.AdamOptimizer(config['learning_rate'])
             _var_list = self._R1.var_list + self._R2.var_list + self._R3.var_list
             self.train_step = _optimizer.minimize(self.loss, var_list=_var_list)
+        # initialize all variables
         self._sess.run(tf.global_variables_initializer())
 
     def fit(self, batch_x, batch_y):
@@ -125,7 +135,7 @@ class ConvNetRegressor(object):
         return loss
 
     def deploy(self, save_folder: str, x, y):
-        z1, z2, z3 = self._sess.run([self._z1, self._z2, self._z3], feed_dict={self.x: x, self.y: y})
+        z1, z2, z3, z4 = self._sess.run([self._z1, self._z2, self._z3, self._z4], feed_dict={self.x: x, self.y: y})
         loss, loss_1, loss_2, loss_3 = self._sess.run([self.loss, self.loss_1, self.loss_2, self.loss_3],
                                                       feed_dict={self.x: x, self.y: y})
         for i in range(z1.shape[0]):
@@ -134,6 +144,7 @@ class ConvNetRegressor(object):
             save_image_with_scale(save_folder + "/{:02d}_z1.png".format(i + 1), z1[i, :, :, 0])
             save_image_with_scale(save_folder + "/{:02d}_z2.png".format(i + 1), z2[i, :, :, 0])
             save_image_with_scale(save_folder + "/{:02d}_z3.png".format(i + 1), z3[i, :, :, 0])
+            save_image_with_scale(save_folder + "/{:02d}_z4.png".format(i + 1), z4[i, :, :, 0])
 
         return loss, loss_1, loss_2, loss_3
 

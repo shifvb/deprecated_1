@@ -8,7 +8,7 @@ from 日文论文实现.models.conv_regressor import ConvNetRegressor
 def train():
     config_dict = config_folder_guard({
         # train parameters
-        "batch_size": 40,
+        "batch_size": 10,
         "epoch_num": 10000,
         "save_interval": 500,
         "image_size": [128, 128],
@@ -21,10 +21,10 @@ def train():
     })
 
     # 生成图片集和标签
-    batch_x_dir = r"F:\registration_patches\version_3(pt-ct)\train\shift_10_10_pt"
+    batch_x_dir = r"F:\registration_patches\version_3(pt-ct)\train\normalized_pt"
     batch_y_dir = r"F:\registration_patches\version_3(pt-ct)\train\resized_ct"
     batch_x, batch_y = gen_batches(batch_x_dir, batch_y_dir, config_dict)
-    valid_x_dir = r"F:\registration_patches\version_3(pt-ct)\validate\shift_10_10_pt"
+    valid_x_dir = r"F:\registration_patches\version_3(pt-ct)\validate\normolized_pt"
     valid_y_dir = r"F:\registration_patches\version_3(pt-ct)\validate\resized_ct"
     valid_x, valid_y = gen_batches(valid_x_dir, valid_y_dir, config_dict)
 

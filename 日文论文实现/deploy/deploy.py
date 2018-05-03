@@ -8,7 +8,7 @@ from 日文论文实现.train.train import gen_batches
 def deploy():
     config_dict = config_folder_guard({
         # network settings
-        "batch_size": 40,
+        "batch_size": 10,
         "image_size": [128, 128],
         "shuffle_batch": False,
 
@@ -17,7 +17,7 @@ def deploy():
         "result_dir": r"F:\registration_running_data\result",
     })
     # 获取图片路径集
-    deploy_x_dir = r"F:\registration_patches\version_3(pt-ct)\validate\shift_10_10_pt"
+    deploy_x_dir = r"F:\registration_patches\version_3(pt-ct)\validate\normolized_pt"
     deploy_y_dir = r"F:\registration_patches\version_3(pt-ct)\validate\resized_ct"
     deploy_x, deploy_y = gen_batches(deploy_x_dir, deploy_y_dir, config_dict)
 

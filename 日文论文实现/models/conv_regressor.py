@@ -105,14 +105,14 @@ class ConvNetRegressor(object):
         r1_out = self._R1(xy)
         r2_out = self._R2(xy, r1_out)
         r3_out = self._R3(xy, r2_out)
-        # construct Spatial Transformers
+        # construct Spatial Transformers # todo: change weights
         self._z1 = WarpST(self.x, r1_out, [_img_height, _img_width], name="WrapST_1")
         self._z2 = WarpST(self.x, r2_out, [_img_height, _img_width], name="WrapST_2")
         self._z3 = WarpST(self.x, r3_out, [_img_height, _img_width], name="WrapST_3")
-        r4_out = tf.image.resize_nearest_neighbor(r1_out, [16, 16]) + \
-                 tf.image.resize_nearest_neighbor(r2_out, [16, 16]) + \
-                 tf.image.resize_nearest_neighbor(r3_out, [16, 16])
-        r4_out = r4_out / 3
+        r4_out = 7 * tf.image.resize_nearest_neighbor(r1_out, [16, 16]) + \
+                 2 * tf.image.resize_nearest_neighbor(r2_out, [16, 16]) + \
+                 1 * tf.image.resize_nearest_neighbor(r3_out, [16, 16])
+        r4_out = r4_out / 10
         self._z4 = WarpST(self.x, r4_out, [_img_height, _img_width], name="WrapST_4")
         # calculate loss
         self.loss_1 = -ncc(self.y, self._z1)

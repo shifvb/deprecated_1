@@ -17,8 +17,10 @@ def train():
 
         # folder path
         "checkpoint_dir": r"F:\registration_running_data\checkpoints",
-        "validate_dir": r"F:\registration_running_data\temp",
-        "validate_dir_1": r"F:\registration_running_data\temp_1",
+        "validate_dir": r"F:\registration_running_data\validate",
+        "validate_dir_1": r"F:\registration_running_data\validate_1",
+        "validate_dir_2": r"F:\registration_running_data\validate_2",
+        "validate_dir_3": r"F:\registration_running_data\validate_3",
     })
 
     # 生成图片集和标签
@@ -36,14 +38,45 @@ def train():
     threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
     # Captain on the bridge!
-    # 训练R1
+
+    # 单独训练R1
     for i in range(config_dict["epoch_num"]):
         _bx, _by = sess.run([batch_x, batch_y])
         loss = reg.fit_only_r1(_bx, _by)
-        print("[INFO] epoch={:>5}, loss={:.3f}".format(i, loss))
+        print("[INFO] (R1) epoch={:>5}, loss={:.3f}".format(i, loss))
         if (i + 1) % config_dict["save_interval"] == 0:
             _vx, _vy = sess.run([valid_x, valid_y])
             reg.deploy(config_dict["validate_dir_1"], _vx, _vy)
+            reg.save(sess, config_dict["checkpoint_dir"])
+
+    # 单独训练R2
+    for i in range(config_dict["epoch_num"]):
+        _bx, _by = sess.run([batch_x, batch_y])
+        loss = reg.fit_only_r2(_bx, _by)
+        print("[INFO] (R2) epoch={:>5}, loss={:.3f}".format(i, loss))
+        if (i + 1) % config_dict["save_interval"] == 0:
+            _vx, _vy = sess.run([valid_x, valid_y])
+            reg.deploy(config_dict["validate_dir_2"], _vx, _vy)
+            reg.save(sess, config_dict["checkpoint_dir"])
+
+    # 单独训练R3
+    for i in range(config_dict["epoch_num"]):
+        _bx, _by = sess.run([batch_x, batch_y])
+        loss = reg.fit_only_r3(_bx, _by)
+        print("[INFO] (R3) epoch={:>5}, loss={:.3f}".format(i, loss))
+        if (i + 1) % config_dict["save_interval"] == 0:
+            _vx, _vy = sess.run([valid_x, valid_y])
+            reg.deploy(config_dict["validate_dir_3"], _vx, _vy)
+            reg.save(sess, config_dict["checkpoint_dir"])
+
+    # 再统一训练R1 + R2 + R3
+    for i in range(config_dict["epoch_num"]):
+        _bx, _by = sess.run([batch_x, batch_y])
+        loss = reg.fit(_bx, _by)
+        print("[INFO] epoch={:>5}, loss={:.3f}".format(i, loss))
+        if (i + 1) % config_dict["save_interval"] == 0:
+            _vx, _vy = sess.run([valid_x, valid_y])
+            reg.deploy(config_dict["validate_dir"], _vx, _vy)
             reg.save(sess, config_dict["checkpoint_dir"])
 
     # 回收资源
@@ -60,6 +93,10 @@ def config_folder_guard(config_dict: dict):
         os.makedirs(config_dict["validate_dir"])
     if not os.path.exists(config_dict["validate_dir_1"]):
         os.makedirs(config_dict["validate_dir_1"])
+    if not os.path.exists(config_dict["validate_dir_2"]):
+        os.makedirs(config_dict["validate_dir_2"])
+    if not os.path.exists(config_dict["validate_dir_3"]):
+        os.makedirs(config_dict["validate_dir_3"])
     return config_dict
 
 

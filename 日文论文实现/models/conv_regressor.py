@@ -124,12 +124,39 @@ class ConvNetRegressor(object):
             _optimizer = tf.train.AdamOptimizer(config['learning_rate'])
             _var_list = self._R1.var_list + self._R2.var_list + self._R3.var_list
             self.train_step = _optimizer.minimize(self.loss, var_list=_var_list)
+            self.train_step_R1 = _optimizer.minimize(self.loss_1, var_list=self._R1.var_list)
+            self.train_step_R2 = _optimizer.minimize(self.loss_2, var_list=self._R2.var_list)
+            self.train_step_R3 = _optimizer.minimize(self.loss_3, var_list=self._R3.var_list)
         # initialize all variables
         self._sess.run(tf.global_variables_initializer())
 
     def fit(self, batch_x, batch_y):
         _, loss = self._sess.run(
             fetches=[self.train_step, self.loss],
+            feed_dict={self.x: batch_x, self.y: batch_y}
+        )
+        return loss
+
+    def fit_only_r1(self, batch_x, batch_y):
+        """train by changing only R1's weights"""
+        _, loss = self._sess.run(
+            fetches=[self.train_step_R1, self.loss_1],
+            feed_dict={self.x: batch_x, self.y: batch_y}
+        )
+        return loss
+
+    def fit_only_r2(self, batch_x, batch_y):
+        """train by changing only R2's weights"""
+        _, loss = self._sess.run(
+            fetches=[self.train_step_R2, self.loss_2],
+            feed_dict={self.x: batch_x, self.y: batch_y}
+        )
+        return loss
+
+    def fit_only_r3(self, batch_x, batch_y):
+        """train by changing only R3's weights"""
+        _, loss = self._sess.run(
+            fetches=[self.train_step_R3, self.loss_3],
             feed_dict={self.x: batch_x, self.y: batch_y}
         )
         return loss

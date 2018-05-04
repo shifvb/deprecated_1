@@ -18,6 +18,7 @@ def train():
         # folder path
         "checkpoint_dir": r"F:\registration_running_data\checkpoints",
         "validate_dir": r"F:\registration_running_data\temp",
+        "validate_dir_1": r"F:\registration_running_data\temp_1",
     })
 
     # 生成图片集和标签
@@ -34,14 +35,15 @@ def train():
     coord = tf.train.Coordinator()
     threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
-    # 开始训练
+    # Captain on the bridge!
+    # 训练R1
     for i in range(config_dict["epoch_num"]):
         _bx, _by = sess.run([batch_x, batch_y])
-        loss = reg.fit(_bx, _by)
+        loss = reg.fit_only_r1(_bx, _by)
         print("[INFO] epoch={:>5}, loss={:.3f}".format(i, loss))
         if (i + 1) % config_dict["save_interval"] == 0:
             _vx, _vy = sess.run([valid_x, valid_y])
-            reg.deploy(config_dict["validate_dir"], _vx, _vy)
+            reg.deploy(config_dict["validate_dir_1"], _vx, _vy)
             reg.save(sess, config_dict["checkpoint_dir"])
 
     # 回收资源
@@ -56,6 +58,8 @@ def config_folder_guard(config_dict: dict):
         os.makedirs(config_dict["checkpoint_dir"])
     if not os.path.exists(config_dict["validate_dir"]):
         os.makedirs(config_dict["validate_dir"])
+    if not os.path.exists(config_dict["validate_dir_1"]):
+        os.makedirs(config_dict["validate_dir_1"])
     return config_dict
 
 

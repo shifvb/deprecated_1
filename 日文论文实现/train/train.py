@@ -3,6 +3,7 @@ import numpy as np
 import tensorflow as tf
 from PIL import Image
 from 日文论文实现.models.conv_regressor import ConvNetRegressor
+from 日文论文实现.train.config_folder_guard import config_folder_guard
 
 
 def train():
@@ -18,28 +19,31 @@ def train():
 
         # folder path
         "checkpoint_dir": r"F:\registration_running_data\checkpoints",
-
+        # R1 path
         "train_in_x_dir_1": r"F:\registration_patches\version_all\train\normalized_pt",
         "train_in_y_dir_1": r"F:\registration_patches\version_all\train\resized_ct",
-        "train_in_x_dir_2": r"F:\registration_patches\version_all\train\normalized_pt",
-        "train_in_y_dir_2": r"F:\registration_patches\version_all\train\resized_ct",
-        "train_in_x_dir_3": r"F:\registration_patches\version_all\train\normalized_pt",
-        "train_in_y_dir_3": r"F:\registration_patches\version_all\train\resized_ct",
-        "train_in_x_dir_all": r"F:\registration_patches\version_all\train\normalized_pt",
-        "train_in_y_dir_all": r"F:\registration_patches\version_all\train\resized_ct",
-
-        "valid_in_x_dir_1": r"F:\registration_patches\version_all\test\normolized_pt",
-        "valid_in_y_dir_1": r"F:\registration_patches\version_all\test\resized_ct",
-        "valid_in_x_dir_2": r"F:\registration_patches\version_all\test\normolized_pt",
-        "valid_in_y_dir_2": r"F:\registration_patches\version_all\test\resized_ct",
-        "valid_in_x_dir_3": r"F:\registration_patches\version_all\test\normolized_pt",
-        "valid_in_y_dir_3": r"F:\registration_patches\version_all\test\resized_ct",
-        "valid_in_x_dir_all": r"F:\registration_patches\version_all\test\normolized_pt",
-        "valid_in_y_dir_all": r"F:\registration_patches\version_all\test\resized_ct",
-        "valid_out_dir_all": r"F:\registration_running_data\validate",
+        "valid_in_x_dir_1": r"F:\registration_patches\version_all\train\normalized_pt",
+        "valid_in_y_dir_1": r"F:\registration_patches\version_all\train\resized_ct",
         "valid_out_dir_1": r"F:\registration_running_data\validate_1",
+        # R2 path
+        "train_in_x_dir_2": r"F:\registration_running_data\validate_1",
+        "train_in_y_dir_2": r"F:\registration_patches\version_all\train\resized_ct",
+        "valid_in_x_dir_2": r"F:\registration_running_data\validate_1",
+        "valid_in_y_dir_2": r"F:\registration_patches\version_all\train\resized_ct",
         "valid_out_dir_2": r"F:\registration_running_data\validate_2",
+        # R3 path
+        "train_in_x_dir_3": r"F:\registration_running_data\validate_2",
+        "train_in_y_dir_3": r"F:\registration_patches\version_all\train\resized_ct",
+        "valid_in_x_dir_3": r"F:\registration_running_data\validate_2",
+        "valid_in_y_dir_3": r"F:\registration_patches\version_all\train\resized_ct",
         "valid_out_dir_3": r"F:\registration_running_data\validate_3",
+        # R1, R2, R3 path
+        "train_in_x_dir_all": r"F:\registration_running_data\validate_3",
+        "train_in_y_dir_all": r"F:\registration_patches\version_all\train\resized_ct",
+        "valid_in_x_dir_all": r"F:\registration_running_data\validate_3",
+        "valid_in_y_dir_all": r"F:\registration_patches\version_all\train\resized_ct",
+        "valid_out_dir_all": r"F:\registration_running_data\validate_all",
+
     })
     valid_iter_num = len(os.listdir(config["valid_in_y_dir_1"])) // config["batch_size"]
 
@@ -70,9 +74,10 @@ def train():
         print("[INFO] (R1) epoch={:>5}, loss={:.3f}".format(i, loss))
         if (i + 1) % config["save_interval"] == 0:
             # reg.save(sess, config["checkpoint_dir"])
-            for j in range(valid_iter_num):
-                _vx_1, _vy_1 = sess.run([valid_x_1, valid_y_1])
-                reg.deploy(config["valid_out_dir_1"], _vx_1, _vy_1, j * config["batch_size"])
+            pass
+    for j in range(valid_iter_num):
+        _vx_1, _vy_1 = sess.run([valid_x_1, valid_y_1])
+        reg.deploy(config["valid_out_dir_1"], _vx_1, _vy_1, j * config["batch_size"])
 
     # 单独训练R2
     train_x_2, train_y_2 = gen_batches(config["train_in_x_dir_2"], config["train_in_y_dir_2"], {
@@ -93,9 +98,10 @@ def train():
         print("[INFO] (R2) epoch={:>5}, loss={:.3f}".format(i, loss))
         if (i + 1) % config["save_interval"] == 0:
             # reg.save(sess, config["checkpoint_dir"])
-            for j in range(valid_iter_num):
-                _vx_2, _vy_2 = sess.run([valid_x_2, valid_y_2])
-                reg.deploy(config["valid_out_dir_2"], _vx_2, _vy_2, j * config["batch_size"])
+            pass
+    for j in range(valid_iter_num):
+        _vx_2, _vy_2 = sess.run([valid_x_2, valid_y_2])
+        reg.deploy(config["valid_out_dir_2"], _vx_2, _vy_2, j * config["batch_size"])
 
     # 单独训练R3
     train_x_3, train_y_3 = gen_batches(config["train_in_x_dir_3"], config["train_in_y_dir_3"], {
@@ -116,9 +122,10 @@ def train():
         print("[INFO] (R3) epoch={:>5}, loss={:.3f}".format(i, loss))
         if (i + 1) % config["save_interval"] == 0:
             # reg.save(sess, config["checkpoint_dir"])
-            for j in range(valid_iter_num):
-                _vx_3, _vy_3 = sess.run([valid_x_3, valid_y_3])
-                reg.deploy(config["valid_out_dir_3"], _vx_3, _vy_3, j * config["batch_size"])
+            pass
+    for j in range(valid_iter_num):
+        _vx_3, _vy_3 = sess.run([valid_x_3, valid_y_3])
+        reg.deploy(config["valid_out_dir_3"], _vx_3, _vy_3, j * config["batch_size"])
 
     # 再统一训练R1 + R2 + R3
     train_x_all, train_y_all = gen_batches(config["train_in_x_dir_all"], config["train_in_y_dir_all"], {
@@ -139,9 +146,10 @@ def train():
         print("[INFO] epoch={:>5}, loss={:.3f}".format(i, loss))
         if (i + 1) % config["save_interval"] == 0:
             # reg.save(sess, config["checkpoint_dir"])
-            for j in range(valid_iter_num):
-                _vx_all, _vy_all = sess.run([valid_x_all, valid_y_all])
-                reg.deploy(config["valid_out_dir_all"], _vx_all, _vy_all, j * config["batch_size"])
+            pass
+    for j in range(valid_iter_num):
+        _vx_all, _vy_all = sess.run([valid_x_all, valid_y_all])
+        reg.deploy(config["valid_out_dir_all"], _vx_all, _vy_all, j * config["batch_size"])
 
     # 回收资源
     coord_1.request_stop()
@@ -155,22 +163,7 @@ def train():
     sess.close()
 
 
-def config_folder_guard(config_dict: dict):
-    """防止出现文件夹不存在的情况"""
-    if not os.path.exists(config_dict["checkpoint_dir"]):
-        os.makedirs(config_dict["checkpoint_dir"])
-    if not os.path.exists(config_dict["valid_out_dir_all"]):
-        os.makedirs(config_dict["valid_out_dir_all"])
-    if not os.path.exists(config_dict["valid_out_dir_1"]):
-        os.makedirs(config_dict["valid_out_dir_1"])
-    if not os.path.exists(config_dict["valid_out_dir_2"]):
-        os.makedirs(config_dict["valid_out_dir_2"])
-    if not os.path.exists(config_dict["valid_out_dir_3"]):
-        os.makedirs(config_dict["valid_out_dir_3"])
-    return config_dict
-
-
-def gen_batches(x_dir: str, y_dir: str, config: dict):
+def gen_batches(x_dir: str, y_dir: str, config: dict): # todo: change it
     """
     给定x文件夹和y文件夹，生成batch tensor的函数
     :param x_dir: Moving Image文件夹绝对路径
@@ -181,8 +174,12 @@ def gen_batches(x_dir: str, y_dir: str, config: dict):
     :return: Tensor('batch_x', dtype=float32, shape=[batch_size, img_height, img_width, 1])
             Tensor('batch_y', dtype=float32, shape=[batch_size, img_height, img_width, 1])
     """
-    x_arr = [os.path.join(x_dir, _) for _ in os.listdir(x_dir)]
+    x_arr = [os.path.join(x_dir, _) for _ in os.listdir(x_dir) if not ("y" in _ or "z" in _)]  # only x can in
     y_arr = [os.path.join(y_dir, _) for _ in os.listdir(y_dir)]
+    x_arr.sort(key=lambda _: int(os.path.split(_)[-1].split(".")[0].split("_")[0]))
+    y_arr.sort(key=lambda _: int(os.path.split(_)[-1].split(".")[0].split("_")[0]))
+
+    assert len(x_arr) == len(y_arr)
     input_queue = tf.train.slice_input_producer([x_arr, y_arr], shuffle=config["shuffle_batch"])
     batch_x, batch_y = tf.train.batch(input_queue, batch_size=config["batch_size"])
 

@@ -18,23 +18,32 @@ def train():
 
         # folder path
         "checkpoint_dir": r"F:\registration_running_data\checkpoints",
-        "valid_in_x_dir": r"F:\registration_patches\version_all\test\normolized_pt",
-        "valid_in_y_dir": r"F:\registration_patches\version_all\test\resized_ct",
+
+        "train_in_x_dir_1": r"F:\registration_patches\version_all\train\normalized_pt",
+        "train_in_y_dir_1": r"F:\registration_patches\version_all\train\resized_ct",
+        "train_in_x_dir_2": r"F:\registration_patches\version_all\train\normalized_pt",
+        "train_in_y_dir_2": r"F:\registration_patches\version_all\train\resized_ct",
+        "train_in_x_dir_3": r"F:\registration_patches\version_all\train\normalized_pt",
+        "train_in_y_dir_3": r"F:\registration_patches\version_all\train\resized_ct",
+        "train_in_x_dir_all": r"F:\registration_patches\version_all\train\normalized_pt",
+        "train_in_y_dir_all": r"F:\registration_patches\version_all\train\resized_ct",
+
+        "valid_in_x_dir_1": r"F:\registration_patches\version_all\test\normolized_pt",
+        "valid_in_y_dir_1": r"F:\registration_patches\version_all\test\resized_ct",
+        "valid_in_x_dir_2": r"F:\registration_patches\version_all\test\normolized_pt",
+        "valid_in_y_dir_2": r"F:\registration_patches\version_all\test\resized_ct",
+        "valid_in_x_dir_3": r"F:\registration_patches\version_all\test\normolized_pt",
+        "valid_in_y_dir_3": r"F:\registration_patches\version_all\test\resized_ct",
+        "valid_in_x_dir_all": r"F:\registration_patches\version_all\test\normolized_pt",
+        "valid_in_y_dir_all": r"F:\registration_patches\version_all\test\resized_ct",
         "valid_out_dir_all": r"F:\registration_running_data\validate",
         "valid_out_dir_1": r"F:\registration_running_data\validate_1",
         "valid_out_dir_2": r"F:\registration_running_data\validate_2",
         "valid_out_dir_3": r"F:\registration_running_data\validate_3",
     })
-    valid_iter_num = len(os.listdir(config["valid_in_y_dir"])) // config["batch_size"]
+    valid_iter_num = len(os.listdir(config["valid_in_y_dir_1"])) // config["batch_size"]
 
     # 生成图片集
-    batch_x_dir = r"F:\registration_patches\version_all\train\normalized_pt"
-    batch_y_dir = r"F:\registration_patches\version_all\train\resized_ct"
-    batch_x, batch_y = gen_batches(batch_x_dir, batch_y_dir, {
-        "batch_size": config["batch_size"],
-        "image_size": config["image_size"],
-        "shuffle_batch": True
-    })
 
     # 构建网络
     sess = tf.Session()
@@ -43,7 +52,12 @@ def train():
     # Captain on the bridge!
 
     # 单独训练R1
-    valid_x_1, valid_y_1 = gen_batches(config["valid_in_x_dir"], config["valid_in_y_dir"], {
+    train_x_1, train_y_1 = gen_batches(config["train_in_x_dir_1"], config["train_in_y_dir_1"], {
+        "batch_size": config["batch_size"],
+        "image_size": config["image_size"],
+        "shuffle_batch": True
+    })
+    valid_x_1, valid_y_1 = gen_batches(config["valid_in_x_dir_1"], config["valid_in_y_dir_1"], {
         "batch_size": config["batch_size"],
         "image_size": config["image_size"],
         "shuffle_batch": False
@@ -51,17 +65,22 @@ def train():
     coord_1 = tf.train.Coordinator()
     threads_1 = tf.train.start_queue_runners(sess=sess, coord=coord_1)
     for i in range(config["epoch_num"]):
-        _bx, _by = sess.run([batch_x, batch_y])
-        loss = reg.fit_only_r1(_bx, _by)
+        _tx_1, _ty_1 = sess.run([train_x_1, train_y_1])
+        loss = reg.fit_only_r1(_tx_1, _ty_1)
         print("[INFO] (R1) epoch={:>5}, loss={:.3f}".format(i, loss))
         if (i + 1) % config["save_interval"] == 0:
-            reg.save(sess, config["checkpoint_dir"])
+            # reg.save(sess, config["checkpoint_dir"])
             for j in range(valid_iter_num):
                 _vx_1, _vy_1 = sess.run([valid_x_1, valid_y_1])
                 reg.deploy(config["valid_out_dir_1"], _vx_1, _vy_1, j * config["batch_size"])
 
     # 单独训练R2
-    valid_x_2, valid_y_2 = gen_batches(config["valid_in_x_dir"], config["valid_in_y_dir"], {
+    train_x_2, train_y_2 = gen_batches(config["train_in_x_dir_2"], config["train_in_y_dir_2"], {
+        "batch_size": config["batch_size"],
+        "image_size": config["image_size"],
+        "shuffle_batch": True
+    })
+    valid_x_2, valid_y_2 = gen_batches(config["valid_in_x_dir_2"], config["valid_in_y_dir_2"], {
         "batch_size": config["batch_size"],
         "image_size": config["image_size"],
         "shuffle_batch": False
@@ -69,17 +88,22 @@ def train():
     coord_2 = tf.train.Coordinator()
     threads_2 = tf.train.start_queue_runners(sess=sess, coord=coord_2)
     for i in range(config["epoch_num"]):
-        _bx, _by = sess.run([batch_x, batch_y])
-        loss = reg.fit_only_r2(_bx, _by)
+        _tx_2, _ty_2 = sess.run([train_x_2, train_y_2])
+        loss = reg.fit_only_r2(_tx_2, _ty_2)
         print("[INFO] (R2) epoch={:>5}, loss={:.3f}".format(i, loss))
         if (i + 1) % config["save_interval"] == 0:
-            reg.save(sess, config["checkpoint_dir"])
+            # reg.save(sess, config["checkpoint_dir"])
             for j in range(valid_iter_num):
                 _vx_2, _vy_2 = sess.run([valid_x_2, valid_y_2])
                 reg.deploy(config["valid_out_dir_2"], _vx_2, _vy_2, j * config["batch_size"])
 
     # 单独训练R3
-    valid_x_3, valid_y_3 = gen_batches(config["valid_in_x_dir"], config["valid_in_y_dir"], {
+    train_x_3, train_y_3 = gen_batches(config["train_in_x_dir_3"], config["train_in_y_dir_3"], {
+        "batch_size": config["batch_size"],
+        "image_size": config["image_size"],
+        "shuffle_batch": True
+    })
+    valid_x_3, valid_y_3 = gen_batches(config["valid_in_x_dir_3"], config["valid_in_y_dir_3"], {
         "batch_size": config["batch_size"],
         "image_size": config["image_size"],
         "shuffle_batch": False
@@ -87,17 +111,22 @@ def train():
     coord_3 = tf.train.Coordinator()
     threads_3 = tf.train.start_queue_runners(sess=sess, coord=coord_3)
     for i in range(config["epoch_num"]):
-        _bx, _by = sess.run([batch_x, batch_y])
-        loss = reg.fit_only_r3(_bx, _by)
+        _tx_3, _ty_3 = sess.run([train_x_3, train_y_3])
+        loss = reg.fit_only_r3(_tx_3, _ty_3)
         print("[INFO] (R3) epoch={:>5}, loss={:.3f}".format(i, loss))
         if (i + 1) % config["save_interval"] == 0:
-            reg.save(sess, config["checkpoint_dir"])
+            # reg.save(sess, config["checkpoint_dir"])
             for j in range(valid_iter_num):
                 _vx_3, _vy_3 = sess.run([valid_x_3, valid_y_3])
                 reg.deploy(config["valid_out_dir_3"], _vx_3, _vy_3, j * config["batch_size"])
 
     # 再统一训练R1 + R2 + R3
-    valid_x, valid_y = gen_batches(config["valid_in_x_dir"], config["valid_in_y_dir"], {
+    train_x_all, train_y_all = gen_batches(config["train_in_x_dir_all"], config["train_in_y_dir_all"], {
+        "batch_size": config["batch_size"],
+        "image_size": config["image_size"],
+        "shuffle_batch": True
+    })
+    valid_x_all, valid_y_all = gen_batches(config["valid_in_x_dir_all"], config["valid_in_y_dir_all"], {
         "batch_size": config["batch_size"],
         "image_size": config["image_size"],
         "shuffle_batch": False
@@ -105,13 +134,13 @@ def train():
     coord_all = tf.train.Coordinator()
     threads_all = tf.train.start_queue_runners(sess=sess, coord=coord_all)
     for i in range(config["epoch_num"]):
-        _bx, _by = sess.run([batch_x, batch_y])
-        loss = reg.fit(_bx, _by)
+        _tx_all, _ty_all = sess.run([train_x_all, train_y_all])
+        loss = reg.fit(_tx_all, _ty_all)
         print("[INFO] epoch={:>5}, loss={:.3f}".format(i, loss))
         if (i + 1) % config["save_interval"] == 0:
-            reg.save(sess, config["checkpoint_dir"])
+            # reg.save(sess, config["checkpoint_dir"])
             for j in range(valid_iter_num):
-                _vx_all, _vy_all = sess.run([valid_x, valid_y])
+                _vx_all, _vy_all = sess.run([valid_x_all, valid_y_all])
                 reg.deploy(config["valid_out_dir_all"], _vx_all, _vy_all, j * config["batch_size"])
 
     # 回收资源

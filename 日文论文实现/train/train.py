@@ -24,16 +24,16 @@ def train():
     })
 
     # 生成图片集
-    batch_x_dir = r"F:\registration_patches\version_3(pt-ct)\train\normalized_pt"
-    batch_y_dir = r"F:\registration_patches\version_3(pt-ct)\train\resized_ct"
+    batch_x_dir = r"F:\registration_patches\version_all\train\normalized_pt"
+    batch_y_dir = r"F:\registration_patches\version_all\train\resized_ct"
     batch_x, batch_y = gen_batches(batch_x_dir, batch_y_dir, {
         "batch_size": config_dict["batch_size"],
         "image_size": config_dict["image_size"],
         "shuffle_batch": True
     })
     # 生成验证集
-    valid_x_dir = r"F:\registration_patches\version_3(pt-ct)\validate\normolized_pt"
-    valid_y_dir = r"F:\registration_patches\version_3(pt-ct)\validate\resized_ct"
+    valid_x_dir = r"F:\registration_patches\version_all\test\normolized_pt"
+    valid_y_dir = r"F:\registration_patches\version_all\test\resized_ct"
     valid_x, valid_y = gen_batches(valid_x_dir, valid_y_dir, {
         "batch_size": config_dict["batch_size"],
         "image_size": config_dict["image_size"],

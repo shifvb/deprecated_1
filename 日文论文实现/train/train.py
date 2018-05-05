@@ -25,6 +25,7 @@ def train():
         "valid_out_dir_2": r"F:\registration_running_data\validate_2",
         "valid_out_dir_3": r"F:\registration_running_data\validate_3",
     })
+    valid_iter_num = len(os.listdir(config["valid_in_y_dir"])) // config["batch_size"]
 
     # 生成图片集
     batch_x_dir = r"F:\registration_patches\version_all\train\normalized_pt"
@@ -55,7 +56,7 @@ def train():
         print("[INFO] (R1) epoch={:>5}, loss={:.3f}".format(i, loss))
         if (i + 1) % config["save_interval"] == 0:
             reg.save(sess, config["checkpoint_dir"])
-            for j in range(len(os.listdir(config["valid_in_x_dir"])) // config["batch_size"]):
+            for j in range(valid_iter_num):
                 _vx_1, _vy_1 = sess.run([valid_x_1, valid_y_1])
                 reg.deploy(config["valid_out_dir_1"], _vx_1, _vy_1, j * config["batch_size"])
 
@@ -73,7 +74,7 @@ def train():
         print("[INFO] (R2) epoch={:>5}, loss={:.3f}".format(i, loss))
         if (i + 1) % config["save_interval"] == 0:
             reg.save(sess, config["checkpoint_dir"])
-            for j in range(len(os.listdir(config["valid_in_x_dir"])) // config["batch_size"]):
+            for j in range(valid_iter_num):
                 _vx_2, _vy_2 = sess.run([valid_x_2, valid_y_2])
                 reg.deploy(config["valid_out_dir_2"], _vx_2, _vy_2, j * config["batch_size"])
 
@@ -91,7 +92,7 @@ def train():
         print("[INFO] (R3) epoch={:>5}, loss={:.3f}".format(i, loss))
         if (i + 1) % config["save_interval"] == 0:
             reg.save(sess, config["checkpoint_dir"])
-            for j in range(len(os.listdir(config["valid_in_x_dir"])) // config["batch_size"]):
+            for j in range(valid_iter_num):
                 _vx_3, _vy_3 = sess.run([valid_x_3, valid_y_3])
                 reg.deploy(config["valid_out_dir_3"], _vx_3, _vy_3, j * config["batch_size"])
 
@@ -109,7 +110,7 @@ def train():
         print("[INFO] epoch={:>5}, loss={:.3f}".format(i, loss))
         if (i + 1) % config["save_interval"] == 0:
             reg.save(sess, config["checkpoint_dir"])
-            for j in range(len(os.listdir(config["valid_in_x_dir"])) // config["batch_size"]):
+            for j in range(valid_iter_num):
                 _vx_all, _vy_all = sess.run([valid_x, valid_y])
                 reg.deploy(config["valid_out_dir_all"], _vx_all, _vy_all, j * config["batch_size"])
 

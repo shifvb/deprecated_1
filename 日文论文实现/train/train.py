@@ -35,8 +35,8 @@ def train():
         "train_in_x_dir_3": r"F:\registration_running_data\validate_2",
         "train_in_y_dir_3": r"F:\registration_patches\version_all\train\resized_ct",
         # "valid_in_x_dir_3": r"F:\registration_running_data\validate_2",
-        "valid_in_x_dir_3": r"F:\registration_patches\version_all\train\normalized_pt",
-        "valid_in_y_dir_3": r"F:\registration_patches\version_all\train\resized_ct",
+        "valid_in_x_dir_3": r"F:\registration_patches\version_all\test\normalized_pt",
+        "valid_in_y_dir_3": r"F:\registration_patches\version_all\test\resized_ct",
         "valid_out_dir_3": r"F:\registration_running_data\validate_3",
         # # R1, R2, R3 path
         # "train_in_x_dir_all": r"F:\registration_running_data\validate_3",
@@ -47,6 +47,7 @@ def train():
 
     })
     valid_iter_num = len(os.listdir(config["valid_in_y_dir_1"])) // config["batch_size"]
+    test_iter_num = len(os.listdir(config["valid_in_x_dir_3"])) // config["batch_size"]
 
     # 生成图片集
 
@@ -114,7 +115,7 @@ def train():
         "batch_size": config["batch_size"],
         "image_size": config["image_size"],
         "shuffle_batch": False
-    })  # R3使用原图像生成配准结果
+    })  # R3使用测试图像生成配准结果
     coord_3 = tf.train.Coordinator()
     threads_3 = tf.train.start_queue_runners(sess=sess, coord=coord_3)
     for i in range(config["epoch_num"]):
@@ -124,7 +125,7 @@ def train():
         if (i + 1) % config["save_interval"] == 0:
             # reg.save(sess, config["checkpoint_dir"])
             pass
-    for j in range(valid_iter_num):
+    for j in range(test_iter_num):
         _vx_3, _vy_3 = sess.run([valid_x_3, valid_y_3])
         reg.deploy(config["valid_out_dir_3"], _vx_3, _vy_3, j * config["batch_size"])
 

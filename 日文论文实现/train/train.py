@@ -11,7 +11,7 @@ def train():
     config = config_folder_guard({
         # train parameters
         "batch_size": 10,
-        "epoch_num": 1000,
+        "epoch_num": 20000,
         "save_interval": 1000,
         "image_size": [128, 128],
         "learning_rate": 1e-5,

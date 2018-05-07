@@ -1,13 +1,13 @@
 import os
-import numpy as np
 import tensorflow as tf
-from PIL import Image
 from 日文论文实现.models.conv_regressor import ConvNetRegressor
 from 日文论文实现.train.config_folder_guard import config_folder_guard
+from 日文论文实现.train.gen_batches import gen_batches
 
 
 def train():
     # 设置参数
+    _train_y_dir = r"F:\registration_patches\version_all\train\resized_ct"
     config = config_folder_guard({
         # train parameters
         "batch_size": 10,
@@ -21,30 +21,24 @@ def train():
         "checkpoint_dir": r"F:\registration_running_data\checkpoints",
         # R1 path
         "train_in_x_dir_1": r"F:\registration_patches\version_all\train\normalized_pt",
-        "train_in_y_dir_1": r"F:\registration_patches\version_all\train\resized_ct",
+        "train_in_y_dir_1": _train_y_dir,
         "valid_in_x_dir_1": r"F:\registration_patches\version_all\train\normalized_pt",
-        "valid_in_y_dir_1": r"F:\registration_patches\version_all\train\resized_ct",
+        "valid_in_y_dir_1": _train_y_dir,
         "valid_out_dir_1": r"F:\registration_running_data\validate_1",
         # R2 path
         "train_in_x_dir_2": r"F:\registration_running_data\validate_1",
-        "train_in_y_dir_2": r"F:\registration_patches\version_all\train\resized_ct",
+        "train_in_y_dir_2": _train_y_dir,
         "valid_in_x_dir_2": r"F:\registration_running_data\validate_1",
-        "valid_in_y_dir_2": r"F:\registration_patches\version_all\train\resized_ct",
+        "valid_in_y_dir_2": _train_y_dir,
         "valid_out_dir_2": r"F:\registration_running_data\validate_2",
         # R3 path
         "train_in_x_dir_3": r"F:\registration_running_data\validate_2",
-        "train_in_y_dir_3": r"F:\registration_patches\version_all\train\resized_ct",
-        # "valid_in_x_dir_3": r"F:\registration_running_data\validate_2",
-        "valid_in_x_dir_3": r"F:\registration_patches\version_all\test\normalized_pt",
-        "valid_in_y_dir_3": r"F:\registration_patches\version_all\test\resized_ct",
+        "train_in_y_dir_3": _train_y_dir,
+        "valid_in_x_dir_3": r"F:\registration_running_data\validate_2",
+        "valid_in_y_dir_3": _train_y_dir,
         "valid_out_dir_3": r"F:\registration_running_data\validate_3",
-
-
     })
     valid_iter_num = len(os.listdir(config["valid_in_y_dir_1"])) // config["batch_size"]
-    test_iter_num = len(os.listdir(config["valid_in_x_dir_3"])) // config["batch_size"]
-
-    # 生成图片集
 
     # 构建网络
     sess = tf.Session()
@@ -69,9 +63,6 @@ def train():
         _tx_1, _ty_1 = sess.run([train_x_1, train_y_1])
         loss = reg.fit_only_r1(_tx_1, _ty_1)
         print("[INFO] (R1) epoch={:>5}, loss={:.3f}".format(i, loss))
-        if (i + 1) % config["save_interval"] == 0:
-            # reg.save(sess, config["checkpoint_dir"])
-            pass
     for j in range(valid_iter_num):
         _vx_1, _vy_1 = sess.run([valid_x_1, valid_y_1])
         reg.deploy(config["valid_out_dir_1"], _vx_1, _vy_1, j * config["batch_size"])
@@ -93,9 +84,6 @@ def train():
         _tx_2, _ty_2 = sess.run([train_x_2, train_y_2])
         loss = reg.fit_only_r2(_tx_2, _ty_2)
         print("[INFO] (R2) epoch={:>5}, loss={:.3f}".format(i, loss))
-        if (i + 1) % config["save_interval"] == 0:
-            # reg.save(sess, config["checkpoint_dir"])
-            pass
     for j in range(valid_iter_num):
         _vx_2, _vy_2 = sess.run([valid_x_2, valid_y_2])
         reg.deploy(config["valid_out_dir_2"], _vx_2, _vy_2, j * config["batch_size"])
@@ -110,19 +98,17 @@ def train():
         "batch_size": config["batch_size"],
         "image_size": config["image_size"],
         "shuffle_batch": False
-    })  # R3使用测试图像生成配准结果
+    }, img_filter_func=lambda _: "z2" in _)  # R3生成的结果的待配准图像，是基于R2生成的配准结果
     coord_3 = tf.train.Coordinator()
     threads_3 = tf.train.start_queue_runners(sess=sess, coord=coord_3)
     for i in range(config["epoch_num"]):
         _tx_3, _ty_3 = sess.run([train_x_3, train_y_3])
         loss = reg.fit_only_r3(_tx_3, _ty_3)
         print("[INFO] (R3) epoch={:>5}, loss={:.3f}".format(i, loss))
-        if (i + 1) % config["save_interval"] == 0:
-            # reg.save(sess, config["checkpoint_dir"])
-            pass
-    for j in range(test_iter_num):
+    for j in range(valid_iter_num):
         _vx_3, _vy_3 = sess.run([valid_x_3, valid_y_3])
         reg.deploy(config["valid_out_dir_3"], _vx_3, _vy_3, j * config["batch_size"])
+    reg.save(sess, config["checkpoint_dir"])  # 存储网络
 
     # 回收资源
     coord_1.request_stop()
@@ -132,47 +118,6 @@ def train():
     coord_3.request_stop()
     coord_3.join(threads_3)
     sess.close()
-
-
-def gen_batches(x_dir: str, y_dir: str, config: dict, img_filter_func=None):
-    """
-    给定x文件夹和y文件夹，生成batch tensor的函数
-    :param x_dir: Moving Image文件夹绝对路径
-    :param y_dir: Fixed Image 文件夹绝对路径
-    :param config: config["shuffle_batch"]：是否shuffle batch
-                    config["batch_size"]：batch大小
-                    config["image_size"]：图像的height和width，tuple类型
-    :return: Tensor('batch_x', dtype=float32, shape=[batch_size, img_height, img_width, 1])
-            Tensor('batch_y', dtype=float32, shape=[batch_size, img_height, img_width, 1])
-    """
-    # 获得待配准图像绝对路径列表
-    if img_filter_func is None:
-        x_arr = [os.path.join(x_dir, _) for _ in os.listdir(x_dir)]
-    else:
-        x_arr = [os.path.join(x_dir, _) for _ in os.listdir(x_dir) if img_filter_func(_)]
-    # 获得参考图像绝对路径列表
-    y_arr = [os.path.join(y_dir, _) for _ in os.listdir(y_dir)]
-    # 对绝对路径列表进行排序
-    x_arr.sort(key=lambda _: int(os.path.split(_)[-1].split(".")[0].split("_")[0]))
-    y_arr.sort(key=lambda _: int(os.path.split(_)[-1].split(".")[0].split("_")[0]))
-    # 如果参考图像数量和待配准图像数量不同，那么意味着出错了
-    assert len(x_arr) == len(y_arr)
-
-    # 构建输入队列 & batch
-    input_queue = tf.train.slice_input_producer([x_arr, y_arr], shuffle=config["shuffle_batch"])
-    batch_x, batch_y = tf.train.batch(input_queue, batch_size=config["batch_size"])
-
-    # 定义处理tensor的外部python函数
-    def _f(input_tensor, batch_size: int, img_height: int, img_width: int, channels: int):
-        _ = np.stack([np.array(Image.open(img_name)) for img_name in input_tensor], axis=0) / 255
-        return _.astype(np.float32).reshape([batch_size, img_height, img_width, channels])
-
-    # 应用外部python函数处理tensor
-    batch_x = tf.py_func(_f, [batch_x, config["batch_size"], *config["image_size"], 1], tf.float32)
-    batch_y = tf.py_func(_f, [batch_y, config["batch_size"], *config["image_size"], 1], tf.float32)
-
-    # 返回batch
-    return batch_x, batch_y
 
 
 if __name__ == '__main__':

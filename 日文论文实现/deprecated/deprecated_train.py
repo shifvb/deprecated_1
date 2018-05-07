@@ -29,3 +29,8 @@
     #     reg.deploy(config["valid_out_dir_all"], _vx_all, _vy_all, j * config["batch_size"])
     # coord_all.request_stop()
     # coord_all.join(threads_all)
+
+
+    # if (i + 1) % config["save_interval"] == 0:
+    #     # reg.save(sess, config["checkpoint_dir"])
+    #     pass

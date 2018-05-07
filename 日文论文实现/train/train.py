@@ -38,12 +38,7 @@ def train():
         "valid_in_x_dir_3": r"F:\registration_patches\version_all\test\normalized_pt",
         "valid_in_y_dir_3": r"F:\registration_patches\version_all\test\resized_ct",
         "valid_out_dir_3": r"F:\registration_running_data\validate_3",
-        # # R1, R2, R3 path
-        # "train_in_x_dir_all": r"F:\registration_running_data\validate_3",
-        # "train_in_y_dir_all": r"F:\registration_patches\version_all\train\resized_ct",
-        # "valid_in_x_dir_all": r"F:\registration_running_data\validate_3",
-        # "valid_in_y_dir_all": r"F:\registration_patches\version_all\train\resized_ct",
-        # "valid_out_dir_all": r"F:\registration_running_data\validate_all",
+
 
     })
     valid_iter_num = len(os.listdir(config["valid_in_y_dir_1"])) // config["batch_size"]
@@ -129,30 +124,6 @@ def train():
         _vx_3, _vy_3 = sess.run([valid_x_3, valid_y_3])
         reg.deploy(config["valid_out_dir_3"], _vx_3, _vy_3, j * config["batch_size"])
 
-    # # 再统一训练R1 + R2 + R3
-    # train_x_all, train_y_all = gen_batches(config["train_in_x_dir_all"], config["train_in_y_dir_all"], {
-    #     "batch_size": config["batch_size"],
-    #     "image_size": config["image_size"],
-    #     "shuffle_batch": True
-    # })
-    # valid_x_all, valid_y_all = gen_batches(config["valid_in_x_dir_all"], config["valid_in_y_dir_all"], {
-    #     "batch_size": config["batch_size"],
-    #     "image_size": config["image_size"],
-    #     "shuffle_batch": False
-    # })
-    # coord_all = tf.train.Coordinator()
-    # threads_all = tf.train.start_queue_runners(sess=sess, coord=coord_all)
-    # for i in range(config["epoch_num"]):
-    #     _tx_all, _ty_all = sess.run([train_x_all, train_y_all])
-    #     loss = reg.fit(_tx_all, _ty_all)
-    #     print("[INFO] epoch={:>5}, loss={:.3f}".format(i, loss))
-    #     if (i + 1) % config["save_interval"] == 0:
-    #         # reg.save(sess, config["checkpoint_dir"])
-    #         pass
-    # for j in range(valid_iter_num):
-    #     _vx_all, _vy_all = sess.run([valid_x_all, valid_y_all])
-    #     reg.deploy(config["valid_out_dir_all"], _vx_all, _vy_all, j * config["batch_size"])
-
     # 回收资源
     coord_1.request_stop()
     coord_1.join(threads_1)
@@ -160,8 +131,6 @@ def train():
     coord_2.join(threads_2)
     coord_3.request_stop()
     coord_3.join(threads_3)
-    # coord_all.request_stop()
-    # coord_all.join(threads_all)
     sess.close()
 
 

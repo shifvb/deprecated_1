@@ -41,10 +41,10 @@ class R2(object):
             # x = tf.nn.avg_pool(x, [1, 64, 64, 1], [1, 64, 64, 1], "SAME")
             x = tf.nn.avg_pool(x, [1, 16, 16, 1], [1, 16, 16, 1], "SAME")
             # 将R1的输出插值 [batch_size, 4, 4, 2] -> [batch_size, 8, 8, 2]
-            R1_out = tf.image.resize_nearest_neighbor(R1_out, [8, 8])
+            # R1_out = tf.image.resize_nearest_neighbor(R1_out, [8, 8])
             # 将R1输出插值的结果concat到R2最大池化的结果上
             # [batch_size, 8, 8, 2] concat [batch_size, 8, 8, 2] -> [batch_size, 8, 8, 4]
-            x = tf.concat([R1_out, x], axis=3)
+            # x = tf.concat([R1_out, x], axis=3) # todo: recovery concat operation(原来的网络是有级联的)
             x = conv2d(x, "conv_1", 64, 3, 1, "SAME", True, tf.nn.elu, self._is_train)
             x = conv2d(x, "conv_2", 2, 3, 1, "SAME", False, None, self._is_train)
         if self._reuse is None:
@@ -71,8 +71,8 @@ class R3(object):
             # x = tf.nn.avg_pool(x, [1, 32, 32, 1], [1, 32, 32, 1], "SAME")
             x = tf.nn.avg_pool(x, [1, 8, 8, 1], [1, 8, 8, 1], "SAME")
             # 将R2的输出插值 [batch_size, 8, 8, 2] -> [batch_size, 16, 16, 2]
-            R2_out = tf.image.resize_nearest_neighbor(R2_out, [16, 16])
-            x = tf.concat([R2_out, x], axis=3)
+            # R2_out = tf.image.resize_nearest_neighbor(R2_out, [16, 16])
+            # x = tf.concat([R2_out, x], axis=3)  # todo: recovery concat operation(原来的网络是有级联的)
             x = conv2d(x, "conv_1", 64, 3, 1, "SAME", True, tf.nn.elu, self._is_train)
             x = conv2d(x, "conv_2", 2, 3, 1, "SAME", False, None, self._is_train)
             if self._reuse is None:
@@ -105,7 +105,7 @@ class ConvNetRegressor(object):
         r1_out = self._R1(xy)
         r2_out = self._R2(xy, r1_out)
         r3_out = self._R3(xy, r2_out)
-        # construct Spatial Transformers # todo: change weights
+        # construct Spatial Transformers
         self._z1 = WarpST(self.x, r1_out, [_img_height, _img_width], name="WrapST_1")
         self._z2 = WarpST(self.x, r2_out, [_img_height, _img_width], name="WrapST_2")
         self._z3 = WarpST(self.x, r3_out, [_img_height, _img_width], name="WrapST_3")

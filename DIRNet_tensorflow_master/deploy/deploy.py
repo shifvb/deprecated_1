@@ -10,16 +10,20 @@ def deploy():
         # network settings
         "batch_size": 10,
         "image_size": [128, 128],
-        "shuffle_batch": False,
 
         # folder path
         "checkpoint_dir": r"F:\registration_running_data\checkpoints",
-        "result_dir": r"F:\registration_running_data\result",
+        "result_dir": r"F:\registration_running_data\deploy",
     })
-    # 获取图片路径集
+
+    # 定义测试集
     deploy_x_dir = r"F:\registration_patches\version_3(pt-ct)\validate\normolized_pt"
     deploy_y_dir = r"F:\registration_patches\version_3(pt-ct)\validate\resized_ct"
-    deploy_x, deploy_y = gen_batches(deploy_x_dir, deploy_y_dir, config_dict)
+    deploy_x, deploy_y = gen_batches(deploy_x_dir, deploy_y_dir, {
+        "batch_size": config_dict["batch_size"],
+        "image_size": config_dict["image_size"],
+        "shuffle_batch": False,
+    })
 
     # 构建网络
     sess = tf.Session()

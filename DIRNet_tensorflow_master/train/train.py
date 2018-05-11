@@ -31,7 +31,7 @@ def train():
     valid_x, valid_y = gen_batches(valid_x_dir, valid_y_dir, {
         "batch_size": config["batch_size"],
         "image_size": config["image_size"],
-        "shuffle_batch": False
+        "shuffle_batch": True
     })
 
     # 构建网络

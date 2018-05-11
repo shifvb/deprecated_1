@@ -17,8 +17,8 @@ def deploy():
     })
 
     # 定义测试集
-    deploy_x_dir = r"F:\registration_patches\version_3(pt-ct)\validate\normolized_pt"
-    deploy_y_dir = r"F:\registration_patches\version_3(pt-ct)\validate\resized_ct"
+    deploy_x_dir = r"F:\registration_patches\version_all\test\normalized_pt"
+    deploy_y_dir = r"F:\registration_patches\version_all\test\resized_ct"
     deploy_x, deploy_y = gen_batches(deploy_x_dir, deploy_y_dir, {
         "batch_size": config_dict["batch_size"],
         "image_size": config_dict["image_size"],

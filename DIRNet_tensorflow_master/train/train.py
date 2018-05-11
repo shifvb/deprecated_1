@@ -12,22 +12,22 @@ def train():
         "batch_size": 10,
         "learning_rate": 1e-5,
         "iteration_num": 10000,
-        "save_interval": 1000,
+        "save_interval": 2500,
         # train data folder
         "checkpoint_dir": r"F:\registration_running_data\checkpoints",
         "temp_dir": r"F:\registration_running_data\validate",
     })
 
     # 定义训练集和验证集
-    batch_x_dir = r"F:\registration_patches\version_3(pt-ct)\train\normalized_pt"
-    batch_y_dir = r"F:\registration_patches\version_3(pt-ct)\train\resized_ct"
+    batch_x_dir = r"F:\registration_patches\version_all\train\normalized_pt"
+    batch_y_dir = r"F:\registration_patches\version_all\train\resized_ct"
     batch_x, batch_y = gen_batches(batch_x_dir, batch_y_dir, {
         "batch_size": config["batch_size"],
         "image_size": config["image_size"],
         "shuffle_batch": True
     })
-    valid_x_dir = r"F:\registration_patches\version_3(pt-ct)\validate\normolized_pt"
-    valid_y_dir = r"F:\registration_patches\version_3(pt-ct)\validate\resized_ct"
+    valid_x_dir = r"F:\registration_patches\version_all\test\normalized_pt"
+    valid_y_dir = r"F:\registration_patches\version_all\test\resized_ct"
     valid_x, valid_y = gen_batches(valid_x_dir, valid_y_dir, {
         "batch_size": config["batch_size"],
         "image_size": config["image_size"],

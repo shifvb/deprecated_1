@@ -11,17 +11,12 @@ class CNN(object):
 
     def __call__(self, x):
         with tf.variable_scope(self.name, reuse=self.reuse):
-            x = conv2d(x, "conv1", 64, 3, 1,
-                       "SAME", True, tf.nn.elu, self.is_train)
+            x = conv2d(x, "conv1", 64, 3, 1, "SAME", True, tf.nn.elu, self.is_train)
             x = tf.nn.avg_pool(x, [1, 2, 2, 1], [1, 2, 2, 1], "SAME")
-
-            x = conv2d(x, "conv2", 128, 3, 1,
-                       "SAME", True, tf.nn.elu, self.is_train)
-            x = conv2d(x, "out1", 128, 3, 1,
-                       "SAME", True, tf.nn.elu, self.is_train)
+            x = conv2d(x, "conv2", 128, 3, 1, "SAME", True, tf.nn.elu, self.is_train)
+            x = conv2d(x, "out1", 128, 3, 1, "SAME", True, tf.nn.elu, self.is_train)
             x = tf.nn.avg_pool(x, [1, 2, 2, 1], [1, 2, 2, 1], "SAME")
-            x = conv2d(x, "out2", 2, 3, 1,
-                       "SAME", False, None, self.is_train)
+            x = conv2d(x, "out2", 2, 3, 1, "SAME", False, None, self.is_train)
 
         if self.reuse is None:
             self.var_list = tf.get_collection(
@@ -70,9 +65,9 @@ class DIRNet(object):
         loss, z = self.sess.run([self.loss, self.z], {self.x: x, self.y: y})
         for i in range(z.shape[0]):
             _idx = img_name_start_idx + i + 1
-            save_image_with_scale(dir_path + "/{:02d}_x.png".format(_idx), x[i, :, :, 0])
-            save_image_with_scale(dir_path + "/{:02d}_y.png".format(_idx), y[i, :, :, 0])
-            save_image_with_scale(dir_path + "/{:02d}_z.png".format(_idx), z[i, :, :, 0])
+            save_image_with_scale(dir_path + "/{:02d}_movimg.png".format(_idx), x[i, :, :, 0])
+            save_image_with_scale(dir_path + "/{:02d}_fiximg.png".format(_idx), y[i, :, :, 0])
+            save_image_with_scale(dir_path + "/{:02d}_result.png".format(_idx), z[i, :, :, 0])
         return loss
 
     def save(self, dir_path):

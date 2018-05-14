@@ -5,7 +5,7 @@ import sys
 
 def my_logger(folder_name: str, file_name: str):
     # get logger
-    _logger = logging.getLogger(__name__)
+    _logger = logging.getLogger(os.path.join(folder_name, file_name))
     _logger.setLevel(logging.INFO)
     # formatter
     formatter = logging.Formatter('%(message)s')

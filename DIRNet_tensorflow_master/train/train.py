@@ -31,8 +31,9 @@ def train():
     valid_x, valid_y = gen_batches(valid_x_dir, valid_y_dir, {
         "batch_size": config["batch_size"],
         "image_size": config["image_size"],
-        "shuffle_batch": True
+        "shuffle_batch": False
     })
+    valid_iter_num = len(os.listdir(valid_y_dir)) // config['batch_size']
 
     # 构建网络
     sess = tf.Session()
@@ -74,7 +75,7 @@ def gen_batches(x_dir: str, y_dir: str, config: dict):
     x_arr.sort(key=lambda _: int(os.path.split(_)[-1].split(".")[0].split("_")[0]))
     y_arr.sort(key=lambda _: int(os.path.split(_)[-1].split(".")[0].split("_")[0]))
     # 如果参考图像数量和待配准图像数量不同，那么意味着出错了
-    # assert len(x_arr) == len(y_arr) # todo: recover it
+    assert len(x_arr) == len(y_arr)
 
     # 构建输入队列 & batch
     input_queue = tf.train.slice_input_producer([x_arr, y_arr], shuffle=config["shuffle_batch"])

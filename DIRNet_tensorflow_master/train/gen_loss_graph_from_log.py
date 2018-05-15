@@ -45,8 +45,10 @@ def gen_loss_graph_from_log_version_3():
     valid_text = [_.strip() for _ in valid_text.split("\n") if _ != ""]
     train_list = [float(_.split(",")[-1].split("=")[-1]) for _ in train_text]
     valid_list = [float(_.split(",")[-1].split("=")[-1]) for _ in valid_text]
-    plt.plot(range(len(train_list)), train_list, c="red", label='train_loss(10 img average)')
+    plt.plot(range(len(train_list)), train_list, c="red", label='train_loss(19450 img average)')
     plt.plot(range(len(valid_list)), valid_list, c="blue", label="valid_loss(6480 img average)")
+    plt.xlabel("epoch")
+    plt.ylabel("loss(-NCC)")
     plt.legend(bbox_to_anchor=[1, 1])
     plt.show()
 

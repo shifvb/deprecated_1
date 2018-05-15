@@ -62,12 +62,18 @@ class DIRNet(object):
         return loss
 
     def deploy(self, dir_path, x, y, img_name_start_idx=0):
+        # 计算loss和配准结果
         loss, z = self.sess.run([self.loss, self.z], {self.x: x, self.y: y})
+        # 如果不存储图像，只返回loss
+        if dir_path is None:
+            return loss
+        # 存储图像
         for i in range(z.shape[0]):
             _idx = img_name_start_idx + i + 1
             save_image_with_scale(dir_path + "/{:02d}_movimg.png".format(_idx), x[i, :, :, 0])
             save_image_with_scale(dir_path + "/{:02d}_fiximg.png".format(_idx), y[i, :, :, 0])
             save_image_with_scale(dir_path + "/{:02d}_result.png".format(_idx), z[i, :, :, 0])
+        # 返回loss
         return loss
 
     def save(self, dir_path):

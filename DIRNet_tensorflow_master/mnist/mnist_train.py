@@ -55,7 +55,7 @@ def mnist_train():
 
 
 def gen_batches(x_dir: str, y_dir: str, config: dict):
-    """warning：本版本被修改过！请使用原版！！！"""
+    """warning：本版本被修改过！使用了np.shuffle进行打乱!!! 请使用原版！！！"""
     x_arr = [os.path.join(x_dir, _) for _ in os.listdir(x_dir)]
     y_arr = [os.path.join(y_dir, _) for _ in os.listdir(y_dir)]
     np.random.shuffle(x_arr)

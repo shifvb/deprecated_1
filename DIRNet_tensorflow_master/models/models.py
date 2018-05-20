@@ -70,9 +70,9 @@ class DIRNet(object):
         # 存储图像
         for i in range(z.shape[0]):
             _idx = img_name_start_idx + i + 1
-            save_image_with_scale(dir_path + "/{:02d}_movimg.png".format(_idx), x[i, :, :, 0])
-            save_image_with_scale(dir_path + "/{:02d}_fiximg.png".format(_idx), y[i, :, :, 0])
-            save_image_with_scale(dir_path + "/{:02d}_result.png".format(_idx), z[i, :, :, 0])
+            save_image_with_scale(dir_path + "/{:02d}_x.png".format(_idx), x[i, :, :, 0])
+            save_image_with_scale(dir_path + "/{:02d}_y.png".format(_idx), y[i, :, :, 0])
+            save_image_with_scale(dir_path + "/{:02d}_z.png".format(_idx), z[i, :, :, 0])
         # 返回loss
         return loss
 

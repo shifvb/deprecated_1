@@ -14,7 +14,7 @@ def train():
         "batch_size": 10,
         "learning_rate": 1e-5,
         "epoch_num": 10000,
-        "save_interval": 1000,
+        "save_interval": 1,
         # train data folder
         "checkpoint_dir": r"F:\registration_running_data\checkpoints",
         "temp_dir": r"F:\registration_running_data\validate",

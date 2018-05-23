@@ -10,16 +10,31 @@ class CNN(object):
 
     def __call__(self, x):
         with tf.variable_scope(self.name, reuse=self.reuse):
-            x = conv2d(x, "conv1", 64, 3, 1, "SAME", True, tf.nn.elu, self.is_train)
+            # conv_1
+            x = conv2d(x, "conv1", 16, 3, 1, "SAME", True, tf.nn.elu, self.is_train)
+            # pool_1
             x = tf.nn.avg_pool(x, [1, 2, 2, 1], [1, 2, 2, 1], "SAME")
-            x = conv2d(x, "conv2", 128, 3, 1, "SAME", True, tf.nn.elu, self.is_train)
-            x = conv2d(x, "out1", 128, 3, 1, "SAME", True, tf.nn.elu, self.is_train)
+            # conv_2
+            x = conv2d(x, "conv2", 16, 3, 1, "SAME", True, tf.nn.elu, self.is_train)
+            # pool_2
             x = tf.nn.avg_pool(x, [1, 2, 2, 1], [1, 2, 2, 1], "SAME")
-            x = conv2d(x, "out2", 2, 3, 1, "SAME", False, None, self.is_train)
+            # conv_3
+            x = conv2d(x, "conv3", 16, 3, 1, "SAME", True, tf.nn.elu, self.is_train)
+            # pool_3
+            x = tf.nn.avg_pool(x, [1, 2, 2, 1], [1, 2, 2, 1], "SAME")
+            # conv_4
+            x = conv2d(x, "conv4", 16, 3, 1, "SAME", True, tf.nn.elu, self.is_train)
+            # pool_4
+            x = tf.nn.avg_pool(x, [1, 2, 2, 1], [1, 2, 2, 1], "SAME")
+            # conv_5
+            x = conv2d(x, "conv5", 16, 1, 1, "SAME", True, tf.nn.elu, self.is_train)
+            # conv_6
+            x = conv2d(x, "conv6", 16, 1, 1, "SAME", True, tf.nn.elu, self.is_train)
+            # conv_7
+            x = conv2d(x, "conv7(out)", 2, 1, 1, "SAME", False, None, self.is_train)
 
         if self.reuse is None:
-            self.var_list = tf.get_collection(
-                tf.GraphKeys.GLOBAL_VARIABLES, scope=self.name)
+            self.var_list = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.name)
             self.saver = tf.train.Saver(self.var_list)
             self.reuse = True
 

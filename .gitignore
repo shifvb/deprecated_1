@@ -103,3 +103,4 @@ ENV/
 .idea/
 DIRNet_original/
 DIRNet_tensorflow_master/README.md
+DIRNet_tensorflow_master/mnist/mnist_extract/

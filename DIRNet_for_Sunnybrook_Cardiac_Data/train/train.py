@@ -14,7 +14,6 @@ def train():
         "batch_size": 32,
         "learning_rate": 1e-4,
         "epoch_num": 1,  # todo
-        "iter_num": 10000,  # todo
         "save_per_epoch": 1,  # todo
         # train data folder
         "ckpt_dir": r"F:\registration_running_data\checkpoints",
@@ -23,22 +22,24 @@ def train():
     })
 
     # 定义训练集和验证集
-    train_x_dir = r""  # todo
-    train_y_dir = r""  # todo
+    train_x_dir = r"F:\registration_patches\5_patients\train\moving"
+    train_y_dir = r"F:\registration_patches\5_patients\train\fixed"
     batch_x, batch_y = gen_batches(train_x_dir, train_y_dir, {
         "batch_size": config["batch_size"],
         "image_size": config["image_size"],
         "shuffle_batch": True
     })
-    valid_x_dir = r""  # todo
-    valid_y_dir = r""  # todo
+    valid_x_dir = r"F:\registration_patches\5_patients\valid\moving"
+    valid_y_dir = r"F:\registration_patches\5_patients\valid\fixed"
     valid_x, valid_y = gen_batches(valid_x_dir, valid_y_dir, {
         "batch_size": config["batch_size"],
         "image_size": config["image_size"],
         "shuffle_batch": False
     })
+
+    # 设定循环次数
+    train_iter_num = 10000
     valid_iter_num = len(os.listdir(valid_y_dir)) // config['batch_size']
-    # config["iteration_num"] = len(os.listdir(train_x_dir)) // config["batch_size"] # todo
 
     # 定义日志记录器
     train_log = logger(config["log_dir"], "train.log")
@@ -55,7 +56,7 @@ def train():
     for epoch in range(config["epoch_num"]):
         # 放入训练集进行训练
         _train_L = []
-        for i in range(config["iteration_num"]):
+        for i in range(train_iter_num):
             _bx, _by = sess.run([batch_x, batch_y])
             _loss_train = reg.fit(_bx, _by)
             _train_L.append(_loss_train)

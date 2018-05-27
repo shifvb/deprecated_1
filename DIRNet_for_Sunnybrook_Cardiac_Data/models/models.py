@@ -31,7 +31,7 @@ class CNN(object):
             # conv_6
             x = conv2d(x, "conv6", 16, 1, 1, "SAME", True, tf.nn.elu, self.is_train)
             # conv_7
-            x = conv2d(x, "conv7(out)", 2, 1, 1, "SAME", False, None, self.is_train)
+            x = conv2d(x, "conv7", 2, 1, 1, "SAME", False, None, self.is_train)
 
         if self.reuse is None:
             self.var_list = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.name)

@@ -7,14 +7,12 @@ from DIRNet_for_Sunnybrook_Cardiac_Data.train.gen_batches import gen_batches
 
 
 def train():
-    # 定义训练参数
+    # 定义网络参数
     config = config_folder_guard({
         # train parameters
         "image_size": [256, 256],
         "batch_size": 32,
         "learning_rate": 1e-4,
-        "epoch_num": 1,  # todo
-        "save_per_epoch": 1,  # todo
         # train data folder
         "ckpt_dir": r"F:\registration_running_data\checkpoints",
         "temp_dir": r"F:\registration_running_data\validate",
@@ -22,15 +20,15 @@ def train():
     })
 
     # 定义训练集和验证集
-    train_x_dir = r"F:\registration_patches\5_patients\train\moving"
-    train_y_dir = r"F:\registration_patches\5_patients\train\fixed"
+    train_x_dir = r"F:\registration_patches\Cardiac_30_patients\valid\moving"
+    train_y_dir = r"F:\registration_patches\Cardiac_30_patients\valid\fixed"
     batch_x, batch_y = gen_batches(train_x_dir, train_y_dir, {
         "batch_size": config["batch_size"],
         "image_size": config["image_size"],
         "shuffle_batch": True
     })
-    valid_x_dir = r"F:\registration_patches\5_patients\valid\moving"
-    valid_y_dir = r"F:\registration_patches\5_patients\valid\fixed"
+    valid_x_dir = r"F:\registration_patches\Cardiac_30_patients\train\moving"
+    valid_y_dir = r"F:\registration_patches\Cardiac_30_patients\train\fixed"
     valid_x, valid_y = gen_batches(valid_x_dir, valid_y_dir, {
         "batch_size": config["batch_size"],
         "image_size": config["image_size"],
@@ -38,7 +36,8 @@ def train():
     })
 
     # 设定循环次数
-    train_iter_num = 10000
+    epoch_num = 50
+    train_iter_num = 200
     valid_iter_num = len(os.listdir(valid_y_dir)) // config['batch_size']
 
     # 定义日志记录器
@@ -53,7 +52,7 @@ def train():
     threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
     # 开始训练
-    for epoch in range(config["epoch_num"]):
+    for epoch in range(epoch_num):
         # 放入训练集进行训练
         _train_L = []
         for i in range(train_iter_num):
@@ -66,15 +65,12 @@ def train():
         _valid_L = []
         for j in range(valid_iter_num):
             _valid_x, _valid_y = sess.run([valid_x, valid_y])
-            _loss_valid = reg.deploy(config["temp_dir"], _valid_x, _valid_y, j * config["batch_size"])
+            if (epoch + 1) % 50 == 0:
+                _loss_valid = reg.deploy(config["temp_dir"], _valid_x, _valid_y, j * config["batch_size"])
+            else:
+                _loss_valid = reg.deploy(None, _valid_x, _valid_y)
             _valid_L.append(_loss_valid)
         valid_log.info("[VALID] epoch={:>6d}, loss={:.6f}".format(epoch + 1, sum(_valid_L) / len(_valid_L)))
-
-        # 一定数目的epoch之后，存储配准结果
-        # if (epoch + 1) % config['save_per_epoch'] == 0:
-        #     _valid_x, _valid_y = sess.run([valid_x, valid_y])
-        #     reg.deploy(config["temp_dir"], _valid_x, _valid_y)
-        #     reg.save(config["ckpt_dir"])
 
     # 回收资源
     coord.request_stop()

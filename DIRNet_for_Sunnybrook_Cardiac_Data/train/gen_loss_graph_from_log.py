@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import matplotlib.pyplot as plt
 
 
@@ -8,18 +9,21 @@ def gen_loss_graph_from_log_version_3():
     valid_log = os.path.join(workspace, "valid.log")
 
     with open(train_log, 'r') as f:
-        train_text = f.read()
+        train_y_text = f.read()
     with open(valid_log, 'r') as f:
-        valid_text = f.read()
+        valid_y_text = f.read()
 
-    train_text = [_.strip() for _ in train_text.split("\n") if _ != ""]
-    valid_text = [_.strip() for _ in valid_text.split("\n") if _ != ""]
-    train_list = [float(_.split(",")[-1].split("=")[-1]) for _ in train_text]
-    valid_list = [float(_.split(",")[-1].split("=")[-1]) for _ in valid_text]
-    plt.plot(range(len(train_list)), train_list, c="red", label='train_loss(19450 img average)')
-    plt.plot(range(len(valid_list)), valid_list, c="blue", label="valid_loss(6480 img average)")
-    plt.xlabel("epoch")
+    train_y_text = [_.strip() for _ in train_y_text.split("\n") if _ != ""]
+    valid_y_text = [_.strip() for _ in valid_y_text.split("\n") if _ != ""]
+    train_y_list = [float(_.split(",")[-1].split("=")[-1]) for _ in train_y_text]
+    valid_y_list = [float(_.split(",")[-1].split("=")[-1]) for _ in valid_y_text]
+    train_x_list = np.array(range(len(train_y_list))) * 200
+    valid_x_list = np.array(range(len(valid_y_list))) * 200
+    plt.plot(train_x_list, train_y_list, c="red", label='train_loss')
+    plt.plot(valid_x_list, valid_y_list, c="blue", label="valid_loss")
+    plt.xlabel("iteration")
     plt.ylabel("loss(-NCC)")
+    plt.axis([0, 10000, -0.996, -0.984])
     plt.legend(bbox_to_anchor=[1, 1])
     plt.show()
 

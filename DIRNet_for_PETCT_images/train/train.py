@@ -10,7 +10,7 @@ def train():
     # 定义网络参数
     config = config_folder_guard({
         # train parameters
-        "image_size": [256, 256],
+        "image_size": [128, 128],
         "batch_size": 32,
         "learning_rate": 1e-4,
         # train data folder
@@ -20,15 +20,15 @@ def train():
     })
 
     # 定义训练集和验证集
-    train_x_dir = r"F:\registration_patches\Cardiac_30_patients_enhanced_contrast(15train+15valid)\train\moving"
-    train_y_dir = r"F:\registration_patches\Cardiac_30_patients_enhanced_contrast(15train+15valid)\train\fixed"
+    train_x_dir = r"F:\registration_patches\CT-CT_75train_25valid\train\moving"
+    train_y_dir = r"F:\registration_patches\CT-CT_75train_25valid\train\fixed"
     batch_x, batch_y = gen_batches(train_x_dir, train_y_dir, {
         "batch_size": config["batch_size"],
         "image_size": config["image_size"],
         "shuffle_batch": True
     })
-    valid_x_dir = r"F:\registration_patches\Cardiac_30_patients_enhanced_contrast(15train+15valid)\valid\moving"
-    valid_y_dir = r"F:\registration_patches\Cardiac_30_patients_enhanced_contrast(15train+15valid)\valid\fixed"
+    valid_x_dir = r"F:\registration_patches\CT-CT_75train_25valid\valid\moving"
+    valid_y_dir = r"F:\registration_patches\CT-CT_75train_25valid\valid\fixed"
     valid_x, valid_y = gen_batches(valid_x_dir, valid_y_dir, {
         "batch_size": config["batch_size"],
         "image_size": config["image_size"],
@@ -65,7 +65,7 @@ def train():
         _valid_L = []
         for j in range(valid_iter_num):
             _valid_x, _valid_y = sess.run([valid_x, valid_y])
-            if (epoch + 1) % 25 == 0:
+            if (epoch + 1) % 2 == 0:
                 _loss_valid = reg.deploy(config["temp_dir"], _valid_x, _valid_y, j * config["batch_size"])
             else:
                 _loss_valid = reg.deploy(None, _valid_x, _valid_y)

@@ -19,11 +19,11 @@ def gen_loss_graph_from_log_version_3():
     valid_y_list = [float(_.split(",")[-1].split("=")[-1]) for _ in valid_y_text]
     train_x_list = np.array(range(len(train_y_list))) * 400
     valid_x_list = np.array(range(len(valid_y_list))) * 400
-    # plt.plot(train_x_list, train_y_list, c="red", label='train_loss')
+    plt.plot(train_x_list, train_y_list, c="red", label='train_loss')
     plt.plot(valid_x_list, valid_y_list, c="blue", label="valid_loss")
     plt.xlabel("iteration")
     plt.ylabel("loss(-NCC)")
-    plt.axis([0, 20000, -0.996, -0.984])
+    # plt.axis([0, 20000, -0.996, -0.984])
     plt.legend(bbox_to_anchor=[1, 1])
     plt.show()
 

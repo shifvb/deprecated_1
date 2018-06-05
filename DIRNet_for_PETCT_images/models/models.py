@@ -1,6 +1,7 @@
 import pickle
 from DIRNet_for_PETCT_images.models.WarpST import WarpST
 from DIRNet_for_PETCT_images.models.ops import *
+from DIRNet_for_PETCT_images.models.grad_regularization_loss import grad_xy
 
 
 class CNN(object):
@@ -67,14 +68,17 @@ class DIRNet(object):
         self.z = WarpST(self.x, self.v, config["image_size"])
 
         # self.loss = mse(self.y, self.z)
-        self.loss = -ncc(self.y, self.z)
+        self.grad_loss = grad_xy(self.v)
+        self.loss = -ncc(self.y, self.z) + self.grad_loss * 1e-3
+
+        # declare train step
         if self.is_train:
             self.optim = tf.train.AdamOptimizer(config["learning_rate"])
             self.train = self.optim.minimize(self.loss, var_list=self.vCNN.var_list)
 
     def fit(self, batch_x, batch_y):
-        _, loss = self.sess.run([self.train, self.loss], {self.x: batch_x, self.y: batch_y})
-        return loss
+        _, loss, grad_loss = self.sess.run([self.train, self.loss, self.grad_loss], {self.x: batch_x, self.y: batch_y})
+        return loss, grad_loss
 
     def deploy(self, dir_path, x, y, img_name_start_idx=0, deform_vec_path=None):
         # 计算loss和配准结果
@@ -82,15 +86,13 @@ class DIRNet(object):
         # 如果指定了存储变形场路径，那么存储变形场向量
         if deform_vec_path is not None:
             pickle.dump(self.sess.run(self.v, {self.x: x, self.y: y}), open(deform_vec_path, 'wb'))
-        # 如果不存储图像，只返回loss
-        if dir_path is None:
-            return loss
-        # 存储图像
-        for i in range(z.shape[0]):
-            _idx = img_name_start_idx + i + 1
-            save_image_with_scale(dir_path + "/{:02d}_x.png".format(_idx), x[i, :, :, 0])
-            save_image_with_scale(dir_path + "/{:02d}_y.png".format(_idx), y[i, :, :, 0])
-            save_image_with_scale(dir_path + "/{:02d}_z.png".format(_idx), z[i, :, :, 0])
+        # 如果指定了存储图像路径，那么存储图像
+        if dir_path is not None:
+            for i in range(z.shape[0]):
+                _idx = img_name_start_idx + i + 1
+                save_image_with_scale(dir_path + "/{:02d}_x.png".format(_idx), x[i, :, :, 0])
+                save_image_with_scale(dir_path + "/{:02d}_y.png".format(_idx), y[i, :, :, 0])
+                save_image_with_scale(dir_path + "/{:02d}_z.png".format(_idx), z[i, :, :, 0])
         # 返回loss
         return loss
 

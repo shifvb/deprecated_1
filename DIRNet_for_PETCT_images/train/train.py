@@ -65,7 +65,6 @@ def train():
 
     # 开始训练
     for epoch in range(epoch_num):
-        # 放入训练集进行训练
         _train_L = []
         for i in range(train_iter_num):
             # 每10次循环，存储一下变形场矩阵
@@ -77,8 +76,10 @@ def train():
                     os.mkdir(_valid_path)
                 reg.deploy(_valid_path, _defvec_x, _defvec_y,
                            deform_vec_path=os.path.join(_vec_save_path, _vec_save_name))
+            # 放入训练集进行训练
             _bx, _by = sess.run([batch_x, batch_y])
-            _loss_train = reg.fit(_bx, _by)
+            _loss_train, _loss_train_grad = reg.fit(_bx, _by)
+            print("epoch_{:>02}_iter_{:>03}: {}".format(epoch, i, _loss_train_grad))
             _train_L.append(_loss_train)
         train_log.info("[TRAIN] epoch={:>6d}, loss={:.6f}".format(epoch + 1, sum(_train_L) / len(_train_L)))
 

@@ -8,9 +8,9 @@ def main():
     filenames = [os.path.join(work_dir, _) for _ in os.listdir(work_dir)]
     for filename in filenames:
         obj = pickle.load(open(filename, 'rb'))
-        obj_x = obj[0, :, :, 0]
-        obj_x = obj_x * 255
-        obj_y = obj[0, :, :, 1]
+        # obj = obj.reshape([32, 2, 128, 128]).transpose([0, 2, 3, 1])
+        obj_x = obj[26, :, :, 1]
+        obj_x = -(obj_x / 2 * 128).astype(np.int16)
         pass
 
 if __name__ == '__main__':

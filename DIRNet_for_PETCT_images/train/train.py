@@ -20,15 +20,15 @@ def train():
     })
 
     # 定义训练集和验证集
-    train_x_dir = r"F:\registration_patches\PET-CT_75train_25valid\train\pt"
-    train_y_dir = r"F:\registration_patches\PET-CT_75train_25valid\train\ct"
+    train_x_dir = r"F:\registration_patches\CT-CT_75train_25valid\train\moving"
+    train_y_dir = r"F:\registration_patches\CT-CT_75train_25valid\train\fixed"
     batch_x, batch_y = gen_batches(train_x_dir, train_y_dir, {
         "batch_size": config["batch_size"],
         "image_size": config["image_size"],
         "shuffle_batch": True
     })
-    valid_x_dir = r"F:\registration_patches\PET-CT_75train_25valid\validate\pt"
-    valid_y_dir = r"F:\registration_patches\PET-CT_75train_25valid\validate\ct"
+    valid_x_dir = r"F:\registration_patches\CT-CT_75train_25valid\valid\moving"
+    valid_y_dir = r"F:\registration_patches\CT-CT_75train_25valid\valid\fixed"
     valid_x, valid_y = gen_batches(valid_x_dir, valid_y_dir, {
         "batch_size": config["batch_size"],
         "image_size": config["image_size"],
@@ -41,8 +41,8 @@ def train():
     valid_iter_num = len(os.listdir(valid_y_dir)) // config['batch_size']
 
     # 用于变形场测试用
-    defvec_x_dir = r"F:\registration_patches\PET-CT_75train_25valid\def_vec\ct"
-    defvec_y_dir = r"F:\registration_patches\PET-CT_75train_25valid\def_vec\pt"
+    defvec_x_dir = r"F:\registration_patches\CT-CT_75train_25valid\def_vec\moving"
+    defvec_y_dir = r"F:\registration_patches\CT-CT_75train_25valid\def_vec\fixed"
     defvec_x, defvec_y = gen_batches(defvec_x_dir, defvec_y_dir, {
         "batch_size": config["batch_size"],
         "image_size": config["image_size"],
@@ -68,14 +68,18 @@ def train():
         # 放入训练集进行训练
         _train_L = []
         for i in range(train_iter_num):
+            # 每10次循环，存储一下变形场矩阵
+            if i % 10 == 0:
+                _defvec_x, _defvec_y = sess.run([defvec_x, defvec_y])
+                _vec_save_name = "epoch_{:>02}_iter_{:>03}.pickle".format(epoch, i)
+                _valid_path = r"F:\registration_running_data\validate_epoch_{:>02}_iter_{:>03}".format(epoch, i)
+                if not os.path.exists(_valid_path):
+                    os.mkdir(_valid_path)
+                reg.deploy(_valid_path, _defvec_x, _defvec_y,
+                           deform_vec_path=os.path.join(_vec_save_path, _vec_save_name))
             _bx, _by = sess.run([batch_x, batch_y])
             _loss_train = reg.fit(_bx, _by)
             _train_L.append(_loss_train)
-            # 每10次循环，存储一下变形场矩阵
-            if (i + 1) % 10 == 0:
-                _defvec_x, _defvec_y = sess.run([defvec_x, defvec_y])
-                _vec_save_name = "epoch_{:>02}_iter_{:>03}.pickle".format(epoch, i)
-                reg.deploy(None, _defvec_x, _defvec_y, deform_vec_path=os.path.join(_vec_save_path, _vec_save_name))
         train_log.info("[TRAIN] epoch={:>6d}, loss={:.6f}".format(epoch + 1, sum(_train_L) / len(_train_L)))
 
         # 放入验证集进行验证

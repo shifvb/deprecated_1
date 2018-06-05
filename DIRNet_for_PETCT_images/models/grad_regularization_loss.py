@@ -5,6 +5,9 @@ def grad_xy(deformation_field_matrix):
     """
     得到一阶梯度正则项
     :param deformation_field_matrix: 形变场矩阵（Tensor）
+        shape: [batch_size, img_height, img_width, channels]
+        typically, shape is [32, 8, 8, 2]
+        dtype: float32
     :return: 正则项
     对于一个矩阵
     [[3 4 5],

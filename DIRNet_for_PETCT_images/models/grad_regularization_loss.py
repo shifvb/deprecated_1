@@ -31,3 +31,31 @@ def grad_xy(deformation_field_matrix):
                     _grad_y += tf.abs(_v[batch, row + 1, column, channel] - _v[batch, row, column, channel])
             _grad += _grad_x + _grad_y
     return _grad
+
+
+def grad_xy_v2(deformation_field_matrix):
+    """
+    vectorized version of grad_xy
+    :param deformation_field_matrix: 形变场矩阵（Tensor）
+        shape: [batch_size, img_height, img_width, channels]
+        typically, shape is [32, 8, 8, 2]
+        dtype: float32
+    :return: grad
+    for a matrix
+    [[3 4 5],
+     [6 7 8],
+     [9 1 2]]
+    grad_x = reduce_sum(abs(
+            [[4, 5],[7, 8], [1, 2]] - [[3, 4], [6, 7], [9, 1]]
+        ))
+    grad_y = reduce_sum(abs(
+            [[6, 7, 8], [9, 1, 2]] - [[3, 4, 5], [6, 7, 8]]
+        ))
+    grad = grad_x + grad_y
+    """
+    _v = deformation_field_matrix
+    img_height = _v.shape[1]
+    img_width = _v.shape[2]
+    grad_x = tf.reduce_sum(tf.abs(_v[:, :, :img_width - 1, :] - _v[:, :, 1:, :]))
+    grad_y = tf.reduce_sum(tf.abs(_v[:, :img_height - 1, :, :] - _v[:, 1:, :, :]))
+    return grad_x + grad_y

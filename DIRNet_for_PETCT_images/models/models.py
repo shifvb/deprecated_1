@@ -1,7 +1,7 @@
 import pickle
 from DIRNet_for_PETCT_images.models.WarpST import WarpST
 from DIRNet_for_PETCT_images.models.ops import *
-from DIRNet_for_PETCT_images.models.grad_regularization_loss import grad_xy
+from DIRNet_for_PETCT_images.models.grad_regularization_loss import grad_xy_v2 as grad_xy
 
 
 class CNN(object):

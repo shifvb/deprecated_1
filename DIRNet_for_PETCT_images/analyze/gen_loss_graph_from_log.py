@@ -33,8 +33,8 @@ def gen_loss_graph_from_log_v4():
     # plt.plot(valid_x_list, valid_loss_list, c="blue", label="valid_loss")
     plt.plot(train_x_list, train_ncc_list, c="yellow", label='train_ncc')
     plt.plot(valid_x_list, valid_ncc_list, c="green", label="valid_ncc")
-    plt.plot(train_x_list, train_grad_list, c="cyan", label='train_grad')
-    plt.plot(valid_x_list, valid_grad_list, c="purple", label="valid_grad")
+    # plt.plot(train_x_list, train_grad_list, c="cyan", label='train_grad')
+    # plt.plot(valid_x_list, valid_grad_list, c="purple", label="valid_grad")
     # 配置
     plt.xlabel("iteration")
     plt.ylabel("loss")

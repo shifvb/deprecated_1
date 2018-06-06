@@ -69,7 +69,8 @@ class DIRNet(object):
 
         # self.loss = mse(self.y, self.z)
         self.grad_loss = grad_xy(self.v)
-        self.loss = -ncc(self.y, self.z) + self.grad_loss * 1e-3
+        self.ncc_loss = -ncc(self.y, self.z)
+        self.loss = self.ncc_loss + self.grad_loss * 1e-3
 
         # declare train step
         if self.is_train:
@@ -77,24 +78,34 @@ class DIRNet(object):
             self.train = self.optim.minimize(self.loss, var_list=self.vCNN.var_list)
 
     def fit(self, batch_x, batch_y):
-        _, loss, grad_loss = self.sess.run([self.train, self.loss, self.grad_loss], {self.x: batch_x, self.y: batch_y})
-        return loss, grad_loss
+        # 训练，计算loss， ncc_loss, grad_loss
+        _, loss, ncc_loss, grad_loss = self.sess.run(
+            fetches=[self.train, self.loss, self.ncc_loss, self.grad_loss],
+            feed_dict={self.x: batch_x, self.y: batch_y},
+        )
+        # 返回loss， ncc_loss, grad_loss
+        return loss, ncc_loss, grad_loss
 
-    def deploy(self, dir_path, x, y, img_name_start_idx=0, deform_vec_path=None):
+    def deploy(self, dir_path, batch_x, batch_y, img_name_start_idx=0, deform_vec_path=None):
         # 计算loss和配准结果
-        loss, z = self.sess.run([self.loss, self.z], {self.x: x, self.y: y})
+        z, loss, ncc_loss, grad_loss = self.sess.run(
+            fetches=[self.z, self.loss, self.ncc_loss, self.grad_loss],
+            feed_dict={self.x: batch_x, self.y: batch_y}
+        )
+
         # 如果指定了存储变形场路径，那么存储变形场向量
         if deform_vec_path is not None:
-            pickle.dump(self.sess.run(self.v, {self.x: x, self.y: y}), open(deform_vec_path, 'wb'))
+            pickle.dump(self.sess.run(self.v, {self.x: batch_x, self.y: batch_y}), open(deform_vec_path, 'wb'))
+
         # 如果指定了存储图像路径，那么存储图像
         if dir_path is not None:
             for i in range(z.shape[0]):
                 _idx = img_name_start_idx + i + 1
-                save_image_with_scale(dir_path + "/{:02d}_x.png".format(_idx), x[i, :, :, 0])
-                save_image_with_scale(dir_path + "/{:02d}_y.png".format(_idx), y[i, :, :, 0])
+                save_image_with_scale(dir_path + "/{:02d}_x.png".format(_idx), batch_x[i, :, :, 0])
+                save_image_with_scale(dir_path + "/{:02d}_y.png".format(_idx), batch_y[i, :, :, 0])
                 save_image_with_scale(dir_path + "/{:02d}_z.png".format(_idx), z[i, :, :, 0])
         # 返回loss
-        return loss
+        return loss, ncc_loss, grad_loss
 
     def save(self, dir_path):
         self.vCNN.save(self.sess, dir_path + "/model.ckpt")

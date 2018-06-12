@@ -1,4 +1,5 @@
 import os
+import time
 import tensorflow as tf
 from DIRNet_for_PETCT_images.models.models import DIRNet
 from DIRNet_for_PETCT_images.train.logger import my_logger as logger
@@ -110,4 +111,6 @@ def train():
 
 
 if __name__ == "__main__":
+    start_time = time.time()
     train()
+    print("time elapsed: {}s".format(time.time() - start_time))

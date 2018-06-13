@@ -25,20 +25,20 @@ class SpatialTransformer(object):
 
         # grid of (x_t, y_t, 1), eq (1) in ref [1]
         x_mesh, y_mesh = self._meshgrid(height, width)  # [h, w]
-        x_mesh = tf.tile(tf.expand_dims(x_mesh, 0), [batch_size, 1, 1]) # [n, h, w]
-        y_mesh = tf.tile(tf.expand_dims(y_mesh, 0), [batch_size, 1, 1]) # [n, h, w]
+        x_mesh = tf.tile(tf.expand_dims(x_mesh, 0), [batch_size, 1, 1])  # [n, h, w]
+        y_mesh = tf.tile(tf.expand_dims(y_mesh, 0), [batch_size, 1, 1])  # [n, h, w]
 
         grid = tf.stack([x_mesh, y_mesh], axis=1)  # [n, 2, h, w]
         grid = tf.reshape(grid, tf.stack([batch_size, 2, height * width]))  # [n, 2, h*w]
 
-        # transform (x, y)^T -> (x+vx, x+vy)^T
-        V = bicubic_interp_2d(V, out_size)
+        V = bicubic_interp_2d(V, out_size)  # [n, h, w, 2]
         V = tf.transpose(V, [0, 3, 1, 2])  # [n, 2, h, w]
-        V = tf.reshape(V, [batch_size, 2, -1])  # [n, 2, h*w]
-        T_g = tf.add(V, grid)  # [n, 2, h*w]
+        V = tf.reshape(V, [batch_size, 2, height * width])  # [n, 2, h*w]
 
-        x_s = T_g[:, 0, :]
-        y_s = T_g[:, 1, :]
+        # transform (x, y)^T -> (x+vx, x+vy)^T
+        T_g = tf.add(V, grid)  # [n, 2, h*w]
+        x_s = T_g[:, 0, :]  # [n, h*w]
+        y_s = T_g[:, 1, :]  # [n, h*w]
 
         return self._interpolate(U, x_s, y_s, out_size)
 

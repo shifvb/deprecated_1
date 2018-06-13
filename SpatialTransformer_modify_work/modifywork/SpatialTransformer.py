@@ -25,9 +25,8 @@ class SpatialTransformer(object):
         channels = tf.shape(U)[3]
 
         # grid of (x_t, y_t, 1), eq (1) in ref [1]
-        out_height = out_size[0]
-        out_width = out_size[1]
-        grid = self._meshgrid(out_height, out_width)  # [2, h*w]
+
+        grid = self._meshgrid(height, width)  # [2, h*w]
         grid = tf.reshape(grid, [-1])  # [2*h*w]
         grid = tf.tile(grid, tf.stack([batch_size]))  # [n*2*h*w]
         grid = tf.reshape(grid, tf.stack([batch_size, 2, -1]))  # [n, 2, h*w]
@@ -43,11 +42,10 @@ class SpatialTransformer(object):
         x_s_flat = tf.reshape(x_s, [-1])
         y_s_flat = tf.reshape(y_s, [-1])
 
-        output = self._interpolate(
-            U, x_s_flat, y_s_flat, out_size)
+        output = self._interpolate(U, x_s_flat, y_s_flat, out_size)
 
         output = tf.reshape(output, tf.stack(
-            [batch_size, out_height, out_width, channels]))
+            [batch_size, height, width, channels]))
         return output
 
     def _repeat(self, x, n_repeats):

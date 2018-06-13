@@ -37,8 +37,8 @@ class SpatialTransformer(object):
         V = tf.reshape(V, [batch_size, 2, -1])  # [n, 2, h*w]
         T_g = tf.add(V, grid)  # [n, 2, h*w]
 
-        x_s = tf.slice(T_g, [0, 0, 0], [-1, 1, -1])
-        y_s = tf.slice(T_g, [0, 1, 0], [-1, 1, -1])
+        x_s = T_g[:, 0, :]
+        y_s = T_g[:, 1, :]
 
         return self._interpolate(U, x_s, y_s, out_size)
 

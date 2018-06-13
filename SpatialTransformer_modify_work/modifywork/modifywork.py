@@ -5,6 +5,8 @@ from PIL import Image
 import tensorflow as tf
 from SpatialTransformer_modify_work.models.WarpST import WarpST
 from SpatialTransformer_modify_work.modifywork.get_images_arr import get_images_arr
+from SpatialTransformer_modify_work.modifywork.gen_diff_arr import gen_diff_arr
+from SpatialTransformer_modify_work.modifywork.SpatialTransformer import SpatialTransformer
 
 
 def main():
@@ -14,26 +16,33 @@ def main():
 
     # 形变场向量
     def_vec_x = np.array([
-        [0, 0],
-        [0, 0]
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0]
     ], dtype=np.float32)
     def_vec_y = np.array([
-        [0, 0],
-        [0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0]
     ], dtype=np.float32)
-    def_vec = np.stack([def_vec_x, def_vec_y], axis=2).reshape([1, 2, 2, 2])
+    def_vec = np.stack([def_vec_x, def_vec_y], axis=2).reshape([1, 3, 3, 2])
     def_tsr = tf.Variable(def_vec, dtype=tf.float32)
 
     # SpatialTransformer
-    z = WarpST(img_arr, def_tsr, img_arr.shape[1:3])
+    z = SpatialTransformer(img_arr, def_tsr, img_arr.shape[1:3])
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         result = sess.run(z)
         print(result.shape, result.dtype)
         result = result.astype(np.uint8)
-        Image.fromarray(255 - result[0, :, :, 0], "L").save(r"F:\tmp3\1.png")
+        Image.fromarray(255 - result[0, :, :, 0], "L").save(r"F:\tmp3\transformed.png")
 
 
 if __name__ == '__main__':
     main()
+    gen_diff_arr(
+        x_path=r"F:\tmp3\transformed.png",
+        y_path=r"F:\tmp3\original.png",
+        out_path=r"f:\tmp3\diff.png"
+    )

@@ -22,10 +22,8 @@ class SpatialTransformer(object):
         batch_size = tf.shape(U)[0]
         height = tf.shape(U)[1]
         width = tf.shape(U)[2]
-        channels = tf.shape(U)[3]
 
         # grid of (x_t, y_t, 1), eq (1) in ref [1]
-
         grid = self._meshgrid(height, width)  # [2, h*w]
         grid = tf.reshape(grid, [-1])  # [2*h*w]
         grid = tf.tile(grid, tf.stack([batch_size]))  # [n*2*h*w]
@@ -39,10 +37,8 @@ class SpatialTransformer(object):
 
         x_s = tf.slice(T_g, [0, 0, 0], [-1, 1, -1])
         y_s = tf.slice(T_g, [0, 1, 0], [-1, 1, -1])
-        x_s_flat = tf.reshape(x_s, [-1])
-        y_s_flat = tf.reshape(y_s, [-1])
 
-        return self._interpolate(U, x_s_flat, y_s_flat, out_size)
+        return self._interpolate(U, x_s, y_s, out_size)
 
     def _repeat(self, x, n_repeats):
         rep = tf.transpose(tf.expand_dims(tf.ones(shape=tf.stack([n_repeats, ])), 1), [1, 0])
@@ -74,12 +70,18 @@ class SpatialTransformer(object):
         width = tf.shape(im)[2]
         channels = tf.shape(im)[3]
 
-        x = tf.cast(x, 'float32')
-        y = tf.cast(y, 'float32')
-        height_f = tf.cast(height, 'float32')
-        width_f = tf.cast(width, 'float32')
         out_height = out_size[0]
         out_width = out_size[1]
+
+        x = tf.reshape(x, [-1])
+        y = tf.reshape(y, [-1])
+
+        x = tf.cast(x, 'float32')
+        y = tf.cast(y, 'float32')
+
+        height_f = tf.cast(height, 'float32')
+        width_f = tf.cast(width, 'float32')
+
         zero = tf.zeros([], dtype='int32')
         max_y = tf.cast(tf.shape(im)[1] - 1, 'int32')
         max_x = tf.cast(tf.shape(im)[2] - 1, 'int32')

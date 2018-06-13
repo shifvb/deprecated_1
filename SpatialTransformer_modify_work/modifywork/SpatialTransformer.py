@@ -19,16 +19,17 @@ class SpatialTransformer(object):
         return self._transform(U, V, out_size)
 
     def _transform(self, U, V, out_size):
-        batch_size = tf.shape(U)[0]
-        height = tf.shape(U)[1]
-        width = tf.shape(U)[2]
+        batch_size = U.shape[0]
+        height = U.shape[1]
+        width = U.shape[2]
 
         # grid of (x_t, y_t, 1), eq (1) in ref [1]
-        x_mesh, y_mesh = self._meshgrid(height, width)
-        grid = tf.stack([x_mesh, y_mesh], axis=0)  # [2, h, w]
-        grid = tf.reshape(grid, [-1])  # [2*h*w]
-        grid = tf.tile(grid, [batch_size])  # [n*2*h*w]
-        grid = tf.reshape(grid, tf.stack([batch_size, 2, -1]))  # [n, 2, h*w]
+        x_mesh, y_mesh = self._meshgrid(height, width)  # [h, w]
+        x_mesh = tf.tile(tf.expand_dims(x_mesh, 0), [batch_size, 1, 1]) # [n, h, w]
+        y_mesh = tf.tile(tf.expand_dims(y_mesh, 0), [batch_size, 1, 1]) # [n, h, w]
+
+        grid = tf.stack([x_mesh, y_mesh], axis=1)  # [n, 2, h, w]
+        grid = tf.reshape(grid, tf.stack([batch_size, 2, height * width]))  # [n, 2, h*w]
 
         # transform (x, y)^T -> (x+vx, x+vy)^T
         V = bicubic_interp_2d(V, out_size)

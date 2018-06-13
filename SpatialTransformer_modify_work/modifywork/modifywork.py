@@ -1,9 +1,6 @@
-import os
-import time
 import numpy as np
 from PIL import Image
 import tensorflow as tf
-from SpatialTransformer_modify_work.models.WarpST import WarpST
 from SpatialTransformer_modify_work.modifywork.get_images_arr import get_images_arr
 from SpatialTransformer_modify_work.modifywork.gen_diff_arr import gen_diff_arr
 from SpatialTransformer_modify_work.modifywork.SpatialTransformer import SpatialTransformer
@@ -17,12 +14,12 @@ def main():
     # 形变场向量
     def_vec_x = np.array([
         [0, 0, 0],
-        [0, 0, 0],
+        [0, -0.1, 0],
         [0, 0, 0]
     ], dtype=np.float32)
     def_vec_y = np.array([
         [0, 0, 0],
-        [0, 0, 0],
+        [0, -0.1, 0],
         [0, 0, 0]
     ], dtype=np.float32)
     def_vec = np.stack([def_vec_x, def_vec_y], axis=2).reshape([1, 3, 3, 2])

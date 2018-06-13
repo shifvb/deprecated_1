@@ -19,25 +19,23 @@ class SpatialTransformer(object):
         return self._transform(V, U, out_size)
 
     def _transform(self, V, U, out_size):
-        num_batch = tf.shape(U)[0]
+        batch_size = tf.shape(U)[0]
         height = tf.shape(U)[1]
         width = tf.shape(U)[2]
-        num_channels = tf.shape(U)[3]
+        channels = tf.shape(U)[3]
 
         # grid of (x_t, y_t, 1), eq (1) in ref [1]
-        height_f = tf.cast(height, 'float32')
-        width_f = tf.cast(width, 'float32')
         out_height = out_size[0]
         out_width = out_size[1]
         grid = self._meshgrid(out_height, out_width)  # [2, h*w]
         grid = tf.reshape(grid, [-1])  # [2*h*w]
-        grid = tf.tile(grid, tf.stack([num_batch]))  # [n*2*h*w]
-        grid = tf.reshape(grid, tf.stack([num_batch, 2, -1]))  # [n, 2, h*w]
+        grid = tf.tile(grid, tf.stack([batch_size]))  # [n*2*h*w]
+        grid = tf.reshape(grid, tf.stack([batch_size, 2, -1]))  # [n, 2, h*w]
 
         # transform (x, y)^T -> (x+vx, x+vy)^T
         V = bicubic_interp_2d(V, out_size)
         V = tf.transpose(V, [0, 3, 1, 2])  # [n, 2, h, w]
-        V = tf.reshape(V, [num_batch, 2, -1])  # [n, 2, h*w]
+        V = tf.reshape(V, [batch_size, 2, -1])  # [n, 2, h*w]
         T_g = tf.add(V, grid)  # [n, 2, h*w]
 
         x_s = tf.slice(T_g, [0, 0, 0], [-1, 1, -1])
@@ -50,7 +48,7 @@ class SpatialTransformer(object):
 
         output = tf.reshape(
             input_transformed,
-            tf.stack([num_batch, out_height, out_width, num_channels]))
+            tf.stack([batch_size, out_height, out_width, channels]))
         return output
 
     def _repeat(self, x, n_repeats):
@@ -58,6 +56,23 @@ class SpatialTransformer(object):
         rep = tf.cast(rep, dtype='int32')
         x = tf.matmul(tf.reshape(x, (-1, 1)), rep)
         return tf.reshape(x, [-1])
+
+    def _meshgrid(self, height, width):
+        # This should be equivalent to:
+        #  x_t, y_t = np.meshgrid(np.linspace(-1, 1, width),
+        #                         np.linspace(-1, 1, height))
+        #  ones = np.ones(np.prod(x_t.shape))
+        #  grid = np.vstack([x_t.flatten(), y_t.flatten(), ones])
+        x_t = tf.matmul(tf.ones(shape=tf.stack([height, 1])),
+                        tf.transpose(tf.expand_dims(tf.linspace(-1.0, 1.0, width), 1), [1, 0]))
+        y_t = tf.matmul(tf.expand_dims(tf.linspace(-1.0, 1.0, height), 1),
+                        tf.ones(shape=tf.stack([1, width])))
+
+        x_t_flat = tf.reshape(x_t, (1, -1))
+        y_t_flat = tf.reshape(y_t, (1, -1))
+
+        grid = tf.concat([x_t_flat, y_t_flat], 0)
+        return grid
 
     def _interpolate(self, im, x, y, out_size):
         # constants
@@ -118,22 +133,7 @@ class SpatialTransformer(object):
         wb = tf.expand_dims(((x1_f - x) * (y - y0_f)), 1)
         wc = tf.expand_dims(((x - x0_f) * (y1_f - y)), 1)
         wd = tf.expand_dims(((x - x0_f) * (y - y0_f)), 1)
+
         output = tf.add_n([wa * Ia, wb * Ib, wc * Ic, wd * Id])
+
         return output
-
-    def _meshgrid(self, height, width):
-        # This should be equivalent to:
-        #  x_t, y_t = np.meshgrid(np.linspace(-1, 1, width),
-        #                         np.linspace(-1, 1, height))
-        #  ones = np.ones(np.prod(x_t.shape))
-        #  grid = np.vstack([x_t.flatten(), y_t.flatten(), ones])
-        x_t = tf.matmul(tf.ones(shape=tf.stack([height, 1])),
-                        tf.transpose(tf.expand_dims(tf.linspace(-1.0, 1.0, width), 1), [1, 0]))
-        y_t = tf.matmul(tf.expand_dims(tf.linspace(-1.0, 1.0, height), 1),
-                        tf.ones(shape=tf.stack([1, width])))
-
-        x_t_flat = tf.reshape(x_t, (1, -1))
-        y_t_flat = tf.reshape(y_t, (1, -1))
-
-        grid = tf.concat([x_t_flat, y_t_flat], 0)
-        return grid

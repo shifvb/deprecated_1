@@ -31,13 +31,14 @@ class SpatialTransformer3D(object):
         return tf.reshape(x, [-1])
 
     def _meshgrid(self, height, width, depth):
-        x_t = tf.matmul(tf.ones(shape=tf.stack([height, 1])),
-                        tf.transpose(tf.expand_dims(tf.linspace(0.0,
-                                                                tf.cast(width, tf.float32) - 1.0, width), 1), [1, 0]))
-        y_t = tf.matmul(tf.expand_dims(tf.linspace(0.0,
-                                                   tf.cast(height, tf.float32) - 1.0, height), 1),
-                        tf.ones(shape=tf.stack([1, width])))
-
+        x_t = tf.matmul(
+            tf.ones(shape=tf.stack([height, 1])),
+            tf.transpose(tf.expand_dims(tf.linspace(0.0, tf.cast(width, tf.float32) - 1.0, width), 1), [1, 0])
+        )
+        y_t = tf.matmul(
+            tf.expand_dims(tf.linspace(0.0, tf.cast(height, tf.float32) - 1.0, height), 1),
+            tf.ones(shape=tf.stack([1, width]))
+        )
         x_t = tf.tile(tf.expand_dims(x_t, 2), [1, 1, depth])
         y_t = tf.tile(tf.expand_dims(y_t, 2), [1, 1, depth])
 
@@ -89,8 +90,7 @@ class SpatialTransformer3D(object):
         dim3 = depth
         dim2 = depth * width
         dim1 = depth * width * height
-        base = self._repeat(tf.range(num_batch) * dim1,
-                            out_height * out_width * out_depth)
+        base = self._repeat(tf.range(num_batch) * dim1, out_height * out_width * out_depth)
 
         base_y0 = base + y0 * dim2
         base_y1 = base + y1 * dim2

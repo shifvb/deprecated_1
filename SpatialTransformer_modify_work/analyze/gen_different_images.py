@@ -8,8 +8,8 @@ def cal_diff(_a, _b):
 
 
 def main():
-    workspace = r"F:\registration_running_data\validate"
-    out_dir = r"F:\registration_running_data\diff"
+    workspace = r"F:\tmp3"
+    out_dir = r"F:\tmp3"
     images = [os.path.join(workspace, _) for _ in os.listdir(workspace)]
     for i in range(0, len(images), 3):
         _name = os.path.split(images[i])[1].split("_")[0]

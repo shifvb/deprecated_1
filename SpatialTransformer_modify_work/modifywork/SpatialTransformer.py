@@ -24,9 +24,10 @@ class SpatialTransformer(object):
         width = tf.shape(U)[2]
 
         # grid of (x_t, y_t, 1), eq (1) in ref [1]
-        grid = self._meshgrid(height, width)  # [2, h*w]
+        x_mesh, y_mesh = self._meshgrid(height, width)
+        grid = tf.stack([x_mesh, y_mesh], axis=0)  # [2, h, w]
         grid = tf.reshape(grid, [-1])  # [2*h*w]
-        grid = tf.tile(grid, tf.stack([batch_size]))  # [n*2*h*w]
+        grid = tf.tile(grid, [batch_size])  # [n*2*h*w]
         grid = tf.reshape(grid, tf.stack([batch_size, 2, -1]))  # [n, 2, h*w]
 
         # transform (x, y)^T -> (x+vx, x+vy)^T
@@ -52,16 +53,15 @@ class SpatialTransformer(object):
         #                         np.linspace(-1, 1, height))
         #  ones = np.ones(np.prod(x_t.shape))
         #  grid = np.vstack([x_t.flatten(), y_t.flatten(), ones])
-        x_t = tf.matmul(tf.ones(shape=tf.stack([height, 1])),
-                        tf.transpose(tf.expand_dims(tf.linspace(-1.0, 1.0, width), 1), [1, 0]))
-        y_t = tf.matmul(tf.expand_dims(tf.linspace(-1.0, 1.0, height), 1),
-                        tf.ones(shape=tf.stack([1, width])))
-
-        x_t_flat = tf.reshape(x_t, (1, -1))
-        y_t_flat = tf.reshape(y_t, (1, -1))
-
-        grid = tf.concat([x_t_flat, y_t_flat], 0)
-        return grid
+        x_t = tf.matmul(
+            tf.ones(shape=tf.stack([height, 1])),
+            tf.transpose(tf.expand_dims(tf.linspace(-1.0, 1.0, width), 1), [1, 0])
+        )
+        y_t = tf.matmul(
+            tf.expand_dims(tf.linspace(-1.0, 1.0, height), 1),
+            tf.ones(shape=tf.stack([1, width]))
+        )
+        return x_t, y_t
 
     def _interpolate(self, im, x, y, out_size):
         # constants

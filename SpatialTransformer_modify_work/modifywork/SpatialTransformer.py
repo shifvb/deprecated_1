@@ -28,19 +28,17 @@ class SpatialTransformer(object):
         x_mesh = tf.tile(tf.expand_dims(x_mesh, 0), [batch_size, 1, 1])  # [n, h, w]
         y_mesh = tf.tile(tf.expand_dims(y_mesh, 0), [batch_size, 1, 1])  # [n, h, w]
 
-        grid = tf.stack([x_mesh, y_mesh], axis=1)  # [n, 2, h, w]
-        grid = tf.reshape(grid, tf.stack([batch_size, 2, height * width]))  # [n, 2, h*w]
-
+        # deformation field
         V = bicubic_interp_2d(V, out_size)  # [n, h, w, 2]
-        V = tf.transpose(V, [0, 3, 1, 2])  # [n, 2, h, w]
-        V = tf.reshape(V, [batch_size, 2, height * width])  # [n, 2, h*w]
 
+        # Convert dx and dy to absolute locations
         # transform (x, y)^T -> (x+vx, x+vy)^T
-        T_g = tf.add(V, grid)  # [n, 2, h*w]
-        x_s = T_g[:, 0, :]  # [n, h*w]
-        y_s = T_g[:, 1, :]  # [n, h*w]
+        dx = V[:, :, :, 0]
+        dy = V[:, :, :, 1]
+        x_new = dx + x_mesh
+        y_new = dy + y_mesh
 
-        return self._interpolate(U, x_s, y_s, out_size)
+        return self._interpolate(U, x_new, y_new, out_size)
 
     def _repeat(self, x, n_repeats):
         rep = tf.transpose(tf.expand_dims(tf.ones(shape=tf.stack([n_repeats, ])), 1), [1, 0])

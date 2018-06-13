@@ -16,9 +16,9 @@ class SpatialTransformer(object):
     """
 
     def __call__(self, U, V, out_size):
-        return self._transform(V, U, out_size)
+        return self._transform(U, V, out_size)
 
-    def _transform(self, V, U, out_size):
+    def _transform(self, U, V, out_size):
         batch_size = tf.shape(U)[0]
         height = tf.shape(U)[1]
         width = tf.shape(U)[2]
@@ -43,12 +43,11 @@ class SpatialTransformer(object):
         x_s_flat = tf.reshape(x_s, [-1])
         y_s_flat = tf.reshape(y_s, [-1])
 
-        input_transformed = self._interpolate(
+        output = self._interpolate(
             U, x_s_flat, y_s_flat, out_size)
 
-        output = tf.reshape(
-            input_transformed,
-            tf.stack([batch_size, out_height, out_width, channels]))
+        output = tf.reshape(output, tf.stack(
+            [batch_size, out_height, out_width, channels]))
         return output
 
     def _repeat(self, x, n_repeats):

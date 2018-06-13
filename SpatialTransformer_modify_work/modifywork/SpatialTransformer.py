@@ -42,11 +42,7 @@ class SpatialTransformer(object):
         x_s_flat = tf.reshape(x_s, [-1])
         y_s_flat = tf.reshape(y_s, [-1])
 
-        output = self._interpolate(U, x_s_flat, y_s_flat, out_size)
-
-        output = tf.reshape(output, tf.stack(
-            [batch_size, height, width, channels]))
-        return output
+        return self._interpolate(U, x_s_flat, y_s_flat, out_size)
 
     def _repeat(self, x, n_repeats):
         rep = tf.transpose(tf.expand_dims(tf.ones(shape=tf.stack([n_repeats, ])), 1), [1, 0])
@@ -132,5 +128,5 @@ class SpatialTransformer(object):
         wd = tf.expand_dims(((x - x0_f) * (y - y0_f)), 1)
 
         output = tf.add_n([wa * Ia, wb * Ib, wc * Ic, wd * Id])
-
+        output = tf.reshape(output, [num_batch, height, width, channels])
         return output

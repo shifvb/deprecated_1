@@ -14,12 +14,12 @@ def main():
     # 形变场向量
     def_vec_x = np.array([
         [0, 0, 0],
-        [0, 0.3, 0],
+        [0, -0.3, 0],
         [0, 0, 0]
     ], dtype=np.float32)
     def_vec_y = np.array([
         [0, 0, 0],
-        [0, 0.3, 0],
+        [0, -0.3, 0],
         [0, 0, 0]
     ], dtype=np.float32)
     def_vec = np.stack([def_vec_x, def_vec_y], axis=2).reshape([1, 3, 3, 2])

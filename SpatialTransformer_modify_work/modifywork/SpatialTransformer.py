@@ -15,13 +15,47 @@ class SpatialTransformer(object):
       https://github.com/daviddao/spatial-transformer-tensorflow/blob/master/spatial_transformer.py
     """
 
-    def __call__(self, U, V, out_size, name='DeformableTransformer'):
+    def __call__(self, U, V, out_size):
         return self._transform(V, U, out_size)
 
+    def _transform(self, V, U, out_size):
+        num_batch = tf.shape(U)[0]
+        height = tf.shape(U)[1]
+        width = tf.shape(U)[2]
+        num_channels = tf.shape(U)[3]
+
+        # grid of (x_t, y_t, 1), eq (1) in ref [1]
+        height_f = tf.cast(height, 'float32')
+        width_f = tf.cast(width, 'float32')
+        out_height = out_size[0]
+        out_width = out_size[1]
+        grid = self._meshgrid(out_height, out_width)  # [2, h*w]
+        grid = tf.reshape(grid, [-1])  # [2*h*w]
+        grid = tf.tile(grid, tf.stack([num_batch]))  # [n*2*h*w]
+        grid = tf.reshape(grid, tf.stack([num_batch, 2, -1]))  # [n, 2, h*w]
+
+        # transform (x, y)^T -> (x+vx, x+vy)^T
+        V = bicubic_interp_2d(V, out_size)
+        V = tf.transpose(V, [0, 3, 1, 2])  # [n, 2, h, w]
+        V = tf.reshape(V, [num_batch, 2, -1])  # [n, 2, h*w]
+        T_g = tf.add(V, grid)  # [n, 2, h*w]
+
+        x_s = tf.slice(T_g, [0, 0, 0], [-1, 1, -1])
+        y_s = tf.slice(T_g, [0, 1, 0], [-1, 1, -1])
+        x_s_flat = tf.reshape(x_s, [-1])
+        y_s_flat = tf.reshape(y_s, [-1])
+
+        input_transformed = self._interpolate(
+            U, x_s_flat, y_s_flat, out_size)
+
+        output = tf.reshape(
+            input_transformed,
+            tf.stack([num_batch, out_height, out_width, num_channels]))
+        return output
+
     def _repeat(self, x, n_repeats):
-        rep = tf.transpose(
-            tf.expand_dims(tf.ones(shape=tf.stack([n_repeats, ])), 1), [1, 0])
-        rep = tf.cast(rep, 'int32')
+        rep = tf.transpose(tf.expand_dims(tf.ones(shape=tf.stack([n_repeats, ])), 1), [1, 0])
+        rep = tf.cast(rep, dtype='int32')
         x = tf.matmul(tf.reshape(x, (-1, 1)), rep)
         return tf.reshape(x, [-1])
 
@@ -103,38 +137,3 @@ class SpatialTransformer(object):
 
         grid = tf.concat([x_t_flat, y_t_flat], 0)
         return grid
-
-    def _transform(self, V, U, out_size):
-        num_batch = tf.shape(U)[0]
-        height = tf.shape(U)[1]
-        width = tf.shape(U)[2]
-        num_channels = tf.shape(U)[3]
-
-        # grid of (x_t, y_t, 1), eq (1) in ref [1]
-        height_f = tf.cast(height, 'float32')
-        width_f = tf.cast(width, 'float32')
-        out_height = out_size[0]
-        out_width = out_size[1]
-        grid = self._meshgrid(out_height, out_width)  # [2, h*w]
-        grid = tf.reshape(grid, [-1])  # [2*h*w]
-        grid = tf.tile(grid, tf.stack([num_batch]))  # [n*2*h*w]
-        grid = tf.reshape(grid, tf.stack([num_batch, 2, -1]))  # [n, 2, h*w]
-
-        # transform (x, y)^T -> (x+vx, x+vy)^T
-        V = bicubic_interp_2d(V, out_size)
-        V = tf.transpose(V, [0, 3, 1, 2])  # [n, 2, h, w]
-        V = tf.reshape(V, [num_batch, 2, -1])  # [n, 2, h*w]
-        T_g = tf.add(V, grid)  # [n, 2, h*w]
-
-        x_s = tf.slice(T_g, [0, 0, 0], [-1, 1, -1])
-        y_s = tf.slice(T_g, [0, 1, 0], [-1, 1, -1])
-        x_s_flat = tf.reshape(x_s, [-1])
-        y_s_flat = tf.reshape(y_s, [-1])
-
-        input_transformed = self._interpolate(
-            U, x_s_flat, y_s_flat, out_size)
-
-        output = tf.reshape(
-            input_transformed,
-            tf.stack([num_batch, out_height, out_width, num_channels]))
-        return output

@@ -2,9 +2,6 @@ import tensorflow as tf
 
 
 class SpatialTransformer3D(object):
-    def call(self, inputs):
-        return self._transform(inputs[0], inputs[1][:, :, :, :, 0], inputs[1][:, :, :, :, 1], inputs[1][:, :, :, :, 2])
-
     def _transform(self, I, dx, dy, dz):
         batch_size = tf.shape(dx)[0]
         height = tf.shape(dx)[1]

@@ -15,10 +15,20 @@ class SpatialTransformer(object):
       https://github.com/daviddao/spatial-transformer-tensorflow/blob/master/spatial_transformer.py
     """
 
-    def __call__(self, U, V, out_size):
-        return self._transform(U, V, out_size)
+    def __call__(self, U, V):
+        return self._transform(U, V)
 
-    def _transform(self, U, V, out_size):
+    def _transform(self, U, V):
+        """
+        transform (x, y)^T -> (x+vx, x+vy)^T
+        :param U: image
+            example: a 256x256 single-channel image
+                [batch_size, 256, 256, 1]
+        :param V: deformation field
+            example: an 8x8 deformation field
+                [batch_size, 8, 8, 2]
+        :return: registered result
+        """
         batch_size = U.shape[0]
         height = U.shape[1]
         width = U.shape[2]
@@ -29,16 +39,15 @@ class SpatialTransformer(object):
         y_mesh = tf.tile(tf.expand_dims(y_mesh, 0), [batch_size, 1, 1])  # [n, h, w]
 
         # deformation field
-        V = bicubic_interp_2d(V, out_size)  # [n, h, w, 2]
+        V = bicubic_interp_2d(V, [height, width])  # [n, h, w, 2]
+        dx = V[:, :, :, 0]  # [n, h, w]
+        dy = V[:, :, :, 1]  # [n, h, w]
 
         # Convert dx and dy to absolute locations
-        # transform (x, y)^T -> (x+vx, x+vy)^T
-        dx = V[:, :, :, 0]
-        dy = V[:, :, :, 1]
         x_new = dx + x_mesh
         y_new = dy + y_mesh
 
-        return self._interpolate(U, x_new, y_new, out_size)
+        return self._interpolate(U, x_new, y_new, [height, width])
 
     def _repeat(self, x, n_repeats):
         rep = tf.transpose(tf.expand_dims(tf.ones(shape=tf.stack([n_repeats, ])), 1), [1, 0])

@@ -106,16 +106,12 @@ class SpatialTransformer(object):
         x = tf.cast(x, 'float32')
         y = tf.cast(y, 'float32')
 
-        height_f = tf.cast(height, 'float32')
-        width_f = tf.cast(width, 'float32')
-
-        zero = tf.zeros([], dtype='int32')
-        max_y = tf.cast(tf.shape(im)[1] - 1, 'int32')
-        max_x = tf.cast(tf.shape(im)[2] - 1, 'int32')
+        max_x = tf.cast(width - 1, 'int32')
+        max_y = tf.cast(height - 1, 'int32')
 
         # scale indices from [-1, 1] to [0, width/height]
-        x = (x + 1.0) * (width_f) / 2.0
-        y = (y + 1.0) * (height_f) / 2.0
+        x = (x + 1.0) * width / 2.0
+        y = (y + 1.0) * height / 2.0
 
         # do sampling
         x0 = tf.cast(tf.floor(x), 'int32')
@@ -123,15 +119,18 @@ class SpatialTransformer(object):
         y0 = tf.cast(tf.floor(y), 'int32')
         y1 = y0 + 1
 
-        x0 = tf.clip_by_value(x0, zero, max_x)
-        x1 = tf.clip_by_value(x1, zero, max_x)
-        y0 = tf.clip_by_value(y0, zero, max_y)
-        y1 = tf.clip_by_value(y1, zero, max_y)
+        x0 = tf.clip_by_value(x0, 0, max_x)
+        x1 = tf.clip_by_value(x1, 0, max_x)
+        y0 = tf.clip_by_value(y0, 0, max_y)
+        y1 = tf.clip_by_value(y1, 0, max_y)
+
         dim2 = width
         dim1 = width * height
         base = self._repeat(tf.range(num_batch) * dim1, out_height * out_width)
+
         base_y0 = base + y0 * dim2
         base_y1 = base + y1 * dim2
+
         idx_a = base_y0 + x0
         idx_b = base_y1 + x0
         idx_c = base_y0 + x1
@@ -141,6 +140,7 @@ class SpatialTransformer(object):
         # channels dim
         im_flat = tf.reshape(im, tf.stack([-1, channels]))
         im_flat = tf.cast(im_flat, 'float32')
+
         Ia = tf.gather(im_flat, idx_a)
         Ib = tf.gather(im_flat, idx_b)
         Ic = tf.gather(im_flat, idx_c)

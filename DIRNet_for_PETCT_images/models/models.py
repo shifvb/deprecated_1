@@ -67,7 +67,7 @@ class DIRNet(object):
 
         # vector map & moved image
         self.v = self.vCNN(self.xy)
-        self.z = WarpST(self.x, self.v, config["image_size"])
+        self.z = WarpST(self.x, self.v)
 
         # self.loss = mse(self.y, self.z)
         self.grad_loss = grad_xy(self.v)

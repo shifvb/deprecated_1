@@ -13,8 +13,17 @@ class SpatialTransformer(object):
     ----------
     References :
       https://github.com/daviddao/spatial-transformer-tensorflow/blob/master/spatial_transformer.py
-    """
 
+    --------------------------------
+    Modified by shifvb at 2018-06-17
+    References:
+        [1] https://github.com/iwyoo/DIRNet-tensorflow/blob/master/WarpST.py
+        [2] https://github.com/voxelmorph/voxelmorph/blob/master/src/dense_3D_spatial_transformer.py
+    Description:
+        I just use the code from archive[1], but it seems to be a little bit poorly aligned.
+        So I reference archive[2] and refactor the code by my comprehension .
+    --------------------------------
+    """
     def __call__(self, U, V):
         # deformation field
         V = bicubic_interp_2d(V, U.shape[1:3])  # [n, h, w, 2]
@@ -46,7 +55,7 @@ class SpatialTransformer(object):
         x_new = dx + x_mesh
         y_new = dy + y_mesh
 
-        return self._interpolate(U, x_new, y_new, [height, width])
+        return self._interpolate(U, x_new, y_new)
 
     def _repeat(self, x, n_repeats):
         rep = tf.transpose(tf.expand_dims(tf.ones(shape=tf.stack([n_repeats, ])), 1), [1, 0])
@@ -60,25 +69,36 @@ class SpatialTransformer(object):
         #                         np.linspace(-1, 1, height))
         #  ones = np.ones(np.prod(x_t.shape))
         #  grid = np.vstack([x_t.flatten(), y_t.flatten(), ones])
+
+        # generate x-grid (example of a 3x3 x-grid):
+        # [[-1  0  1]
+        #  [-1  0  1]
+        #  [-1  0  1]]
         x_t = tf.matmul(
-            tf.ones(shape=tf.stack([height, 1])),
-            tf.transpose(tf.expand_dims(tf.linspace(-1.0, 1.0, width), 1), [1, 0])
+            tf.ones(shape=[height, 1]),
+            tf.transpose(tf.expand_dims(tf.linspace(-1.0, 1.0, width), 1), perm=[1, 0])
         )
+
+        # generate y-grid (example of a 3x3 y-grid):
+        # [[-1 -1 -1]
+        #  [ 0  0  0]
+        #  [ 1  1  1]]
         y_t = tf.matmul(
             tf.expand_dims(tf.linspace(-1.0, 1.0, height), 1),
-            tf.ones(shape=tf.stack([1, width]))
+            tf.ones(shape=[1, width])
         )
+
         return x_t, y_t
 
-    def _interpolate(self, im, x, y, out_size):
-        # constants
-        num_batch = tf.shape(im)[0]
-        height = tf.shape(im)[1]
-        width = tf.shape(im)[2]
-        channels = tf.shape(im)[3]
+    def _interpolate(self, im, x, y):
 
-        out_height = out_size[0]
-        out_width = out_size[1]
+        num_batch = im.shape[0]
+        height = im.shape[1]
+        width = im.shape[2]
+        channels = im.shape[3]
+
+        out_height = x.shape[1]
+        out_width = x.shape[2]
 
         x = tf.reshape(x, [-1])
         y = tf.reshape(y, [-1])

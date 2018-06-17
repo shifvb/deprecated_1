@@ -24,6 +24,7 @@ class SpatialTransformer(object):
         So I reference archive[2] and refactor the code by my comprehension .
     --------------------------------
     """
+
     def __call__(self, U, V):
         # deformation field
         V = bicubic_interp_2d(V, U.shape[1:3])  # [n, h, w, 2]
@@ -34,19 +35,16 @@ class SpatialTransformer(object):
     def _transform(self, U, dx, dy):
         """
         transform (x, y)^T -> (x+vx, x+vy)^T
-        :param U: image
-            example: a 256x256 single-channel image
-                [batch_size, 256, 256, 1]
-        :param V: deformation field
-            example: an 8x8 deformation field
-                [batch_size, 8, 8, 2]
-        :return: registered result
+        :param U: Image
+        :param dx: Delta in x direction (x方向偏移量)
+        :param dy: Delta in y direction (y方向偏移量)
+        :return: Registered result
         """
         batch_size = U.shape[0]
         height = U.shape[1]
         width = U.shape[2]
 
-        # grid of (x_t, y_t, 1), eq (1) in ref [1]
+        # generate grid
         x_mesh, y_mesh = self._meshgrid(height, width)  # [h, w]
         x_mesh = tf.tile(tf.expand_dims(x_mesh, 0), [batch_size, 1, 1])  # [n, h, w]
         y_mesh = tf.tile(tf.expand_dims(y_mesh, 0), [batch_size, 1, 1])  # [n, h, w]
@@ -64,34 +62,36 @@ class SpatialTransformer(object):
         return tf.reshape(x, [-1])
 
     def _meshgrid(self, height, width):
-        # This should be equivalent to:
-        #  x_t, y_t = np.meshgrid(np.linspace(-1, 1, width),
-        #                         np.linspace(-1, 1, height))
-        #  ones = np.ones(np.prod(x_t.shape))
-        #  grid = np.vstack([x_t.flatten(), y_t.flatten(), ones])
-
-        # generate x-grid (example of a 3x3 x-grid):
-        # [[-1  0  1]
-        #  [-1  0  1]
-        #  [-1  0  1]]
-        x_t = tf.matmul(
+        """
+        generate grid
+        generate x-grid (example of a 3x3 x-grid):
+        [[-1. 0. 1.]
+         [-1. 0. 1.]
+         [-1. 0. 1.]]
+         x_t = tf.matmul(
             tf.ones(shape=[height, 1]),
             tf.transpose(tf.expand_dims(tf.linspace(-1.0, 1.0, width), 1), perm=[1, 0])
-        )
+         )
 
-        # generate y-grid (example of a 3x3 y-grid):
-        # [[-1 -1 -1]
-        #  [ 0  0  0]
-        #  [ 1  1  1]]
-        y_t = tf.matmul(
+        generate y-grid (example of a 3x3 y-grid):
+        [[-1.-1.-1.]
+         [ 0. 0. 0.]
+         [ 1. 1. 1.]]
+         y_t = tf.matmul(
             tf.expand_dims(tf.linspace(-1.0, 1.0, height), 1),
             tf.ones(shape=[1, width])
-        )
+         )
 
-        return x_t, y_t
+        This should be equivalent to:
+        x_t, y_t = np.meshgrid(np.linspace(-1, 1, width),
+                               np.linspace(-1, 1, height))
+        :param height: height of grid
+        :param width: width of grid
+        :return: grid
+        """
+        return tf.meshgrid(tf.linspace(-1.0, 1.0, width), tf.linspace(-1.0, 1.0, height))
 
     def _interpolate(self, im, x, y):
-
         num_batch = im.shape[0]
         height = im.shape[1]
         width = im.shape[2]

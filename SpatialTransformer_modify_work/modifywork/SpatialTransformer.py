@@ -56,10 +56,10 @@ class SpatialTransformer(object):
         return self._interpolate(U, x_new, y_new)
 
     def _repeat(self, x, n_repeats):
-        rep = tf.transpose(tf.expand_dims(tf.ones(shape=tf.stack([n_repeats, ])), 1), [1, 0])
-        rep = tf.cast(rep, dtype='int32')
-        x = tf.matmul(tf.reshape(x, (-1, 1)), rep)
-        return tf.reshape(x, [-1])
+        rep = tf.transpose(tf.expand_dims(tf.ones([n_repeats]), 1), [1, 0])  # [1, h*w]
+        x = tf.reshape(x, [-1, 1])  # [n, 1]
+        x = tf.matmul(x, tf.to_int32(rep))  # [n, h*w]
+        return tf.reshape(x, [-1])  # [n*h*w]
 
     def _meshgrid(self, height, width):
         """

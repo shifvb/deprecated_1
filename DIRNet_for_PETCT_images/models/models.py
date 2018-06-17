@@ -1,7 +1,5 @@
 import pickle
-# from DIRNet_for_PETCT_images.models.WarpST import WarpST
-from SpatialTransformer_modify_work.modifywork.SpatialTransformer import SpatialTransformer as WarpST
-WarpST = WarpST()
+from DIRNet_for_PETCT_images.models.SpatialTransformer import SpatialTransformer
 from DIRNet_for_PETCT_images.models.ops import *
 from DIRNet_for_PETCT_images.models.grad_regularization_loss import grad_xy_v2 as grad_xy
 
@@ -67,7 +65,7 @@ class DIRNet(object):
 
         # vector map & moved image
         self.v = self.vCNN(self.xy)
-        self.z = WarpST(self.x, self.v)
+        self.z = SpatialTransformer()(self.x, self.v)
 
         # self.loss = mse(self.y, self.z)
         self.grad_loss = grad_xy(self.v)

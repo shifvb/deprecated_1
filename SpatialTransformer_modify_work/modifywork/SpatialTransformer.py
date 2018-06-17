@@ -16,9 +16,13 @@ class SpatialTransformer(object):
     """
 
     def __call__(self, U, V):
-        return self._transform(U, V)
+        # deformation field
+        V = bicubic_interp_2d(V, U.shape[1:3])  # [n, h, w, 2]
+        dx = V[:, :, :, 0]  # [n, h, w]
+        dy = V[:, :, :, 1]  # [n, h, w]
+        return self._transform(U, dx, dy)
 
-    def _transform(self, U, V):
+    def _transform(self, U, dx, dy):
         """
         transform (x, y)^T -> (x+vx, x+vy)^T
         :param U: image
@@ -37,11 +41,6 @@ class SpatialTransformer(object):
         x_mesh, y_mesh = self._meshgrid(height, width)  # [h, w]
         x_mesh = tf.tile(tf.expand_dims(x_mesh, 0), [batch_size, 1, 1])  # [n, h, w]
         y_mesh = tf.tile(tf.expand_dims(y_mesh, 0), [batch_size, 1, 1])  # [n, h, w]
-
-        # deformation field
-        V = bicubic_interp_2d(V, [height, width])  # [n, h, w, 2]
-        dx = V[:, :, :, 0]  # [n, h, w]
-        dy = V[:, :, :, 1]  # [n, h, w]
 
         # Convert dx and dy to absolute locations
         x_new = dx + x_mesh

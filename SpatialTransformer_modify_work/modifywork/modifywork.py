@@ -14,7 +14,7 @@ def main():
     # 形变场向量
     def_vec_x = np.array([
         [0, 0, 0],
-        [0, -0.3, 0],
+        [0, 0.2, 0],
         [0, 0, 0]
     ], dtype=np.float32)
     def_vec_y = np.array([
@@ -26,7 +26,7 @@ def main():
     def_tsr = tf.Variable(def_vec, dtype=tf.float32)
 
     # SpatialTransformer
-    z = SpatialTransformer()(img_arr, def_tsr, img_arr.shape[1:3])
+    z = SpatialTransformer()(img_arr, def_tsr)
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())

@@ -96,22 +96,18 @@ class SpatialTransformer(object):
         height = im.shape[1]
         width = im.shape[2]
         channels = im.shape[3]
-
         out_height = x.shape[1]
         out_width = x.shape[2]
 
-        x = tf.reshape(x, [-1])
-        y = tf.reshape(y, [-1])
-
-        x = tf.cast(x, 'float32')
-        y = tf.cast(y, 'float32')
+        print("[WARN] todo : remove -0.5 and -0.6")
+        # scale indices from [-1, 1] to [0, width/height]
+        x = tf.cast(tf.reshape(x, [-1]), 'float32')
+        y = tf.cast(tf.reshape(y, [-1]), 'float32')
+        x = (x + 1.0) * tf.to_float(width) / 2.0 - 0.5  # todo: remove -0.5
+        y = (y + 1.0) * tf.to_float(height) / 2.0 - 0.6  # todo: remove -0.6
 
         max_x = tf.cast(width - 1, 'int32')
         max_y = tf.cast(height - 1, 'int32')
-
-        # scale indices from [-1, 1] to [0, width/height]
-        x = (x + 1.0) * width / 2.0
-        y = (y + 1.0) * height / 2.0
 
         # do sampling
         x0 = tf.cast(tf.floor(x), 'int32')

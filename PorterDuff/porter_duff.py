@@ -4,6 +4,13 @@ from PIL import Image
 
 
 class PorterDuff(object):
+    """
+    PorterDuff python implementation
+    --------------
+    References:
+        [1] https://en.wikipedia.org/wiki/Alpha_compositing
+        [2] https://www.jianshu.com/p/d11892bbe055
+    """
     CLEAR = 0  # [0, 0]
     SRC = 1  # [Sa, Sc]
     DST = 2  # [Da, Dc]
@@ -24,16 +31,14 @@ class PorterDuff(object):
     OVERLAY = 17
 
     def __init__(self, source_arr, destination_arr):
-        self._source_color = (source_arr[:, :, :-1] / 255).astype(np.float32)
-        self._source_alpha = (source_arr[:, :, -1:] / 255).astype(np.float32)
-        self._source_color = self._source_color * self._source_alpha  # premultiplied (associated) alpha
-        self._destination_color = (destination_arr[:, :, :-1] / 255).astype(np.float32)
-        self._destination_alpha = (destination_arr[:, :, -1:] / 255).astype(np.float32)
-        self._destination_color = self._destination_color * self._destination_alpha
+        # More information of straight (unassociated) alpha, and premultiplied (associated) alpha can be seen at [1]
+        self._Sc = (source_arr[:, :, :-1] / 255).astype(np.float32)
+        self._Sa = (source_arr[:, :, -1:] / 255).astype(np.float32)
+        self._Sc = self._Sc * self._Sa  # premultiplied (associated) alpha
+        self._Dc = (destination_arr[:, :, :-1] / 255).astype(np.float32)
+        self._Da = (destination_arr[:, :, -1:] / 255).astype(np.float32)
+        self._Dc = self._Dc * self._Da  # premultiplied (associated) alpha
 
-        # More information of straight (unassociated) alpha, and premultiplied (associated) alpha can be seen at
-        # https://en.wikipedia.org/wiki/Alpha_compositing
-        print()
         self._out_color = None
         self._out_alpha = None
 
@@ -46,36 +51,39 @@ class PorterDuff(object):
             self._dst_mode()
         elif mode == PorterDuff.SRC_OVER:
             self._src_over_mode()
+        elif mode == PorterDuff.DST_OVER:
+            self._dst_over_mode()
         else:
             raise ValueError("Not a Valid Mode: {}".format(mode))
 
-        _out_color = self._out_color * 255
-        print()
-        _out_color = _out_color.astype(np.uint8)
-        _out_alpha = self._out_alpha * 255
-        _out_alpha = _out_alpha.astype(np.uint8)
-        return np.concatenate([_out_color, _out_alpha], axis=2)
-
-        # return np.concatenate(
-        #     [(self._out_color * 255).astype(np.uint8), (self._out_alpha * 255).astype(np.uint8)],
-        #     axis=2
-        # )
+        return np.concatenate(
+            [(self._out_color * 255).astype(np.uint8), (self._out_alpha * 255).astype(np.uint8)],
+            axis=2
+        )
 
     def _clear_mode(self):  # CLEAR = 0  # [0, 0]
-        self._out_color = np.ones_like(self._source_color, dtype=np.float32)
-        self._out_alpha = np.ones_like(self._source_alpha, dtype=np.float32)
+        self._out_alpha = np.ones_like(self._Sa, dtype=np.float32)
+        self._out_color = np.ones_like(self._Sc, dtype=np.float32)
 
     def _src_mode(self):  # SRC = 1  # [Sa, Sc]
-        self._out_color = self._source_color
-        self._out_alpha = self._source_alpha
+        self._out_alpha = self._Sa
+        self._out_color = self._Sc
 
     def _dst_mode(self):  # DST = 2  # [Da, Dc]
-        self._out_color = self._destination_color
-        self._out_alpha = self._destination_alpha
+        self._out_alpha = self._Da
+        self._out_color = self._Dc
 
     def _src_over_mode(self):  # [Sa + (1 - Sa)*Da, Rc = Sc + (1 - Sa)*Dc]
-        self._out_color = self._source_color + (1 - self._source_alpha) * self._destination_color
-        self._out_alpha = self._source_alpha + (1 - self._source_alpha) * self._destination_alpha
+        self._out_alpha = self._Sa + (1 - self._Sa) * self._Da
+        self._out_color = self._Sc + (1 - self._Sa) * self._Dc
+
+    def _dst_over_mode(self):  # [Sa + (1 - Sa)*Da, Rc = Dc + (1 - Da)*Sc]
+        self._out_alpha = self._Sa + (1 - self._Sa) * self._Da
+        self._out_color = self._Dc + (1 - self._Da) * self._Sc
+
+    # def _mode(self):  #
+    #     self._out_alpha =
+    #     self._out_color =
 
 
 def porter_duff(mode):
@@ -90,5 +98,5 @@ if __name__ == '__main__':
     destination_arr = np.array(destination_img)
 
     out_path = r'C:\Users\anonymous\Desktop\1\out.png'
-    out_arr = porter_duff(PorterDuff.SRC_OVER)
+    out_arr = porter_duff(PorterDuff.DST_OVER)
     Image.fromarray(out_arr, "RGBA").save(out_path)

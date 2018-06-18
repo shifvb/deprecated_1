@@ -12,6 +12,8 @@ class PorterDuff(object):
         [2] https://en.wikipedia.org/wiki/Alpha_compositing
         [3] https://www.jianshu.com/p/d11892bbe055
         [4] https://blog.csdn.net/IO_Field/article/details/78222527
+        [5] https://blog.csdn.net/android_cmos/article/details/78907166
+        [6] https://blog.csdn.net/u013085697/article/details/52096703
     """
     CLEAR = 0  # [0, 0]
     SRC = 1  # [Sa, Sc]
@@ -179,5 +181,5 @@ if __name__ == '__main__':
     destination_arr = np.array(destination_img)
 
     out_path = r'C:\Users\anonymous\Desktop\1\out.png'
-    out_arr = porter_duff(PorterDuff.OVERLAY)
+    out_arr = porter_duff(PorterDuff.MULTIPLY)
     Image.fromarray(out_arr, "RGBA").save(out_path)

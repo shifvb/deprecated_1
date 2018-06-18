@@ -8,8 +8,9 @@ class PorterDuff(object):
     PorterDuff python implementation
     --------------
     References:
-        [1] https://en.wikipedia.org/wiki/Alpha_compositing
-        [2] https://www.jianshu.com/p/d11892bbe055
+        [1] http://graphics.pixar.com/library/Compositing/paper.pdf
+        [2] https://en.wikipedia.org/wiki/Alpha_compositing
+        [3] https://www.jianshu.com/p/d11892bbe055
     """
     CLEAR = 0  # [0, 0]
     SRC = 1  # [Sa, Sc]
@@ -31,16 +32,21 @@ class PorterDuff(object):
     OVERLAY = 17
 
     def __init__(self, source_arr, destination_arr):
-        # More information of straight (unassociated) alpha, and premultiplied (associated) alpha can be seen at [1]
-        self._Sc = (source_arr[:, :, :-1] / 255).astype(np.float32)
-        self._Sa = (source_arr[:, :, -1:] / 255).astype(np.float32)
+        """
+        # More information of straight (unassociated) alpha, and premultiplied (associated) alpha can be seen at [2]
+        :param source_arr: source image numpy array of shape [height, width, channels]
+        :param destination_arr:  destination numpy array of shape [height, width, channels]
+        """
+        self._Sa = (source_arr[:, :, -1:] / 255).astype(np.float32)  # source alpha
+        self._Sc = (source_arr[:, :, :-1] / 255).astype(np.float32)  # source color
         self._Sc = self._Sc * self._Sa  # premultiplied (associated) alpha
-        self._Dc = (destination_arr[:, :, :-1] / 255).astype(np.float32)
-        self._Da = (destination_arr[:, :, -1:] / 255).astype(np.float32)
+
+        self._Da = (destination_arr[:, :, -1:] / 255).astype(np.float32)  # destination alpha
+        self._Dc = (destination_arr[:, :, :-1] / 255).astype(np.float32)  # destination color
         self._Dc = self._Dc * self._Da  # premultiplied (associated) alpha
 
-        self._out_color = None
-        self._out_alpha = None
+        self._Oa = None  # output alpha
+        self._Oc = None  # output color
 
     def alpha_composition(self, mode):
         if mode == PorterDuff.CLEAR:
@@ -57,30 +63,33 @@ class PorterDuff(object):
             raise ValueError("Not a Valid Mode: {}".format(mode))
 
         return np.concatenate(
-            [(self._out_color * 255).astype(np.uint8), (self._out_alpha * 255).astype(np.uint8)],
+            [(self._Oc * 255).astype(np.uint8), (self._Oa * 255).astype(np.uint8)],
             axis=2
         )
 
     def _clear_mode(self):  # CLEAR = 0  # [0, 0]
-        self._out_alpha = np.ones_like(self._Sa, dtype=np.float32)
-        self._out_color = np.ones_like(self._Sc, dtype=np.float32)
+        self._Oa = np.ones_like(self._Sa, dtype=np.float32)
+        self._Oc = np.ones_like(self._Sc, dtype=np.float32)
 
     def _src_mode(self):  # SRC = 1  # [Sa, Sc]
-        self._out_alpha = self._Sa
-        self._out_color = self._Sc
+        self._Oa = self._Sa
+        self._Oc = self._Sc
 
     def _dst_mode(self):  # DST = 2  # [Da, Dc]
-        self._out_alpha = self._Da
-        self._out_color = self._Dc
+        self._Oa = self._Da
+        self._Oc = self._Dc
 
     def _src_over_mode(self):  # [Sa + (1 - Sa)*Da, Rc = Sc + (1 - Sa)*Dc]
-        self._out_alpha = self._Sa + (1 - self._Sa) * self._Da
-        self._out_color = self._Sc + (1 - self._Sa) * self._Dc
+        self._Oa = self._Sa + (1 - self._Sa) * self._Da
+        self._Oc = self._Sc + (1 - self._Sa) * self._Dc
 
     def _dst_over_mode(self):  # [Sa + (1 - Sa)*Da, Rc = Dc + (1 - Da)*Sc]
-        self._out_alpha = self._Sa + (1 - self._Sa) * self._Da
-        self._out_color = self._Dc + (1 - self._Da) * self._Sc
+        self._Oa = self._Sa + (1 - self._Sa) * self._Da
+        self._Oc = self._Dc + (1 - self._Da) * self._Sc
 
+    def _src_in_mode(self):  # [Sa * Da, Sc * Da]
+        # self.
+        pass
     # def _mode(self):  #
     #     self._out_alpha =
     #     self._out_color =

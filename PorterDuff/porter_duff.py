@@ -63,6 +63,10 @@ class PorterDuff(object):
             self._src_in_mode()
         elif mode == PorterDuff.DST_IN:
             self._dst_in_mode()
+        elif mode == PorterDuff.SRC_OUT:
+            self._src_out_mode()
+        elif mode == PorterDuff.DST_OUT:
+            self._dst_out_mode()
         else:
             raise ValueError("Not a Valid Mode: {}".format(mode))
 
@@ -99,9 +103,13 @@ class PorterDuff(object):
         self._Oa = self._Sa * self._Da
         self._Oc = self._Sa * self._Dc
 
-    # def _mode(self):  #
-    #     self._out_alpha =
-    #     self._out_color =
+    def _src_out_mode(self):  # [Sa * (1 - Da), Sc * (1 - Da)]
+        self._Oa = self._Sa * (1 - self._Da)
+        self._Oc = self._Sc * (1 - self._Da)
+
+    def _dst_out_mode(self):  # [Da * (1 - Sa), Dc * (1 - Sa)]
+        self._Oa = self._Da * (1 - self._Sa)
+        self._Oc = self._Dc * (1 - self._Sa)
 
 
 def porter_duff(mode):
@@ -116,5 +124,5 @@ if __name__ == '__main__':
     destination_arr = np.array(destination_img)
 
     out_path = r'C:\Users\anonymous\Desktop\1\out.png'
-    out_arr = porter_duff(PorterDuff.DST_IN)
+    out_arr = porter_duff(PorterDuff.DST_OUT)
     Image.fromarray(out_arr, "RGBA").save(out_path)

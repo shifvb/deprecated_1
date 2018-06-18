@@ -67,6 +67,14 @@ class PorterDuff(object):
             self._src_out_mode()
         elif mode == PorterDuff.DST_OUT:
             self._dst_out_mode()
+        elif mode == PorterDuff.SRC_ATOP:
+            self._src_atop_mode()
+        elif mode == PorterDuff.DST_ATOP:
+            self._dst_atop_mode()
+        elif mode == PorterDuff.XOR:
+            self._xor_mode()
+        elif mode == PorterDuff.DARKEN:
+            self._darken_mode()
         else:
             raise ValueError("Not a Valid Mode: {}".format(mode))
 
@@ -111,6 +119,22 @@ class PorterDuff(object):
         self._Oa = self._Da * (1 - self._Sa)
         self._Oc = self._Dc * (1 - self._Sa)
 
+    def _src_atop_mode(self):  # [Da, Sc * Da + (1 - Sa) * Dc]
+        self._Oa = self._Da
+        self._Oc = self._Sc * self._Da + (1 - self._Sa) * self._Dc
+
+    def _dst_atop_mode(self):  # [Sa, Sa * Dc + Sc * (1 - Da)]
+        self._Oa = self._Sa
+        self._Oc = self._Sa * self._Dc + self._Sc * (1 - self._Da)
+
+    def _xor_mode(self):  # [Sa + Da - 2 * Sa * Da, Sc * (1 - Da) + (1 - Sa) * Dc]
+        self._Oa = self._Sa + self._Da - 2 * self._Sa * self._Da
+        self._Oc = self._Sc * (1 - self._Da) + (1 - self._Sa) * self._Dc
+
+    def _darken_mode(self):  # [Sa + Da - Sa*Da, Sc*(1 - Da) + Dc*(1 - Sa) + min(Sc, Dc)]
+        self._Oa = self._Sa + self._Da - self._Sa * self._Da
+        self._Oc = self._Sc * (1 - self._Da) + self._Dc * (1 - self._Sa) + np.min([self._Sc, self._Dc])
+
 
 def porter_duff(mode):
     _pd = PorterDuff(source_arr, destination_arr)
@@ -124,5 +148,5 @@ if __name__ == '__main__':
     destination_arr = np.array(destination_img)
 
     out_path = r'C:\Users\anonymous\Desktop\1\out.png'
-    out_arr = porter_duff(PorterDuff.DST_OUT)
+    out_arr = porter_duff(PorterDuff.DARKEN)
     Image.fromarray(out_arr, "RGBA").save(out_path)

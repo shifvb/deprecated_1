@@ -11,6 +11,7 @@ class PorterDuff(object):
         [1] http://graphics.pixar.com/library/Compositing/paper.pdf
         [2] https://en.wikipedia.org/wiki/Alpha_compositing
         [3] https://www.jianshu.com/p/d11892bbe055
+        [4] https://blog.csdn.net/IO_Field/article/details/78222527
     """
     CLEAR = 0  # [0, 0]
     SRC = 1  # [Sa, Sc]
@@ -29,7 +30,7 @@ class PorterDuff(object):
     MULTIPLY = 14  # [Sa * Da, Sc * Dc]
     SCREEN = 15  # [Sa + Da - Sa * Da, Sc + Dc - Sc * Dc]
     ADD = 16  # Saturate(S + D)
-    OVERLAY = 17
+    OVERLAY = 17  # A_out = A_dst + A_scr - A_dst * A_src, C_out = 2 * C_dst * C_src (or other methods) (archive [4])
 
     def __init__(self, source_arr, destination_arr):
         """
@@ -75,6 +76,16 @@ class PorterDuff(object):
             self._xor_mode()
         elif mode == PorterDuff.DARKEN:
             self._darken_mode()
+        elif mode == PorterDuff.LIGHTEN:
+            self._lighten_mode()
+        elif mode == PorterDuff.MULTIPLY:
+            self._multiply_mode()
+        elif mode == PorterDuff.SCREEN:
+            self._screen_mode()
+        elif mode == PorterDuff.ADD:
+            self._add_mode()
+        elif mode == PorterDuff.OVERLAY:
+            self._overlay_mode()
         else:
             raise ValueError("Not a Valid Mode: {}".format(mode))
 
@@ -135,6 +146,26 @@ class PorterDuff(object):
         self._Oa = self._Sa + self._Da - self._Sa * self._Da
         self._Oc = self._Sc * (1 - self._Da) + self._Dc * (1 - self._Sa) + np.min([self._Sc, self._Dc])
 
+    def _lighten_mode(self):  # [Sa + Da - Sa*Da, Sc*(1 - Da) + Dc*(1 - Sa) + max(Sc, Dc)]
+        self._Oa = self._Sa + self._Da - self._Sa * self._Da
+        self._Oc = self._Sc * (1 - self._Da) + self._Dc * (1 - self._Sa) + np.max([self._Sc, self._Dc])
+
+    def _multiply_mode(self):  # [Sa * Da, Sc * Dc]
+        self._Oa = self._Sa * self._Da
+        self._Oc = self._Sc * self._Dc
+
+    def _screen_mode(self):  # [Sa + Da - Sa * Da, Sc + Dc - Sc * Dc]
+        self._Oa = self._Sa + self._Da - self._Sa * self._Da
+        self._Oc = self._Sc + self._Dc - self._Sc * self._Dc
+
+    def _add_mode(self):  # Saturate(S + D)
+        raise NotImplementedError()
+
+    def _overlay_mode(self):
+        # A_out = A_dst + A_scr - A_dst * A_src, C_out = 2 * C_dst * C_src (or other methods) (archive [4])
+        self._Oa = self._Da + self._Sa - self._Da * self._Sa
+        self._Oc = 2 * self._Dc * self._Sc
+
 
 def porter_duff(mode):
     _pd = PorterDuff(source_arr, destination_arr)
@@ -148,5 +179,5 @@ if __name__ == '__main__':
     destination_arr = np.array(destination_img)
 
     out_path = r'C:\Users\anonymous\Desktop\1\out.png'
-    out_arr = porter_duff(PorterDuff.DARKEN)
+    out_arr = porter_duff(PorterDuff.OVERLAY)
     Image.fromarray(out_arr, "RGBA").save(out_path)

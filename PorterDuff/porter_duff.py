@@ -186,5 +186,5 @@ if __name__ == '__main__':
     destination_arr = np.array(destination_img)
 
     out_path = r'C:\Users\anonymous\Desktop\1\out.png'
-    out_arr = porter_duff(PorterDuff.DARKEN)
+    out_arr = porter_duff(PorterDuff.OVERLAY)
     Image.fromarray(out_arr, "RGBA").save(out_path)

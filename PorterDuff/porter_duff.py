@@ -1,4 +1,3 @@
-import os
 import numpy as np
 from PIL import Image
 
@@ -40,14 +39,15 @@ class PorterDuff(object):
         :param source_arr: source image numpy array of shape [height, width, channels]
         :param destination_arr:  destination numpy array of shape [height, width, channels]
         """
+        # range from [0, 255](uint8) to [0, 1](float32)
         self._Sa = (source_arr[:, :, -1:] / 255).astype(np.float32)  # source alpha
         self._Sc = (source_arr[:, :, :-1] / 255).astype(np.float32)  # source color
-        self._Sc = self._Sc * self._Sa  # premultiplied (associated) alpha
-
         self._Da = (destination_arr[:, :, -1:] / 255).astype(np.float32)  # destination alpha
         self._Dc = (destination_arr[:, :, :-1] / 255).astype(np.float32)  # destination color
+        # straight(unassociated) alpha to premultiplied(associated) alpha
+        self._Sc = self._Sc * self._Sa  # premultiplied (associated) alpha
         self._Dc = self._Dc * self._Da  # premultiplied (associated) alpha
-
+        # declare output variables
         self._Oa = None  # output alpha
         self._Oc = None  # output color
 
@@ -91,10 +91,15 @@ class PorterDuff(object):
         else:
             raise ValueError("Not a Valid Mode: {}".format(mode))
 
-        return np.concatenate(
-            [(self._Oc * 255).astype(np.uint8), (self._Oa * 255).astype(np.uint8)],
-            axis=2
-        )
+        # premultiplied(associated) alpha to straight(unassociated) alpha
+        # Because in numpy, (np.array(1)/np.array(0.0)).astype(np.uint8) = 0
+        # So, any element in self._Oa is zero doesn't matters. Just don't care about it.
+        self._Oc = self._Oc / self._Oa
+        # range from [0, 1](float32) to [0, 255](uint8)
+        self._Oc = (self._Oc * 255).astype(np.uint8)
+        self._Oa = (self._Oa * 255).astype(np.uint8)
+
+        return np.concatenate([self._Oc, self._Oa], axis=2)
 
     def _clear_mode(self):  # CLEAR = 0  # [0, 0]
         self._Oa = np.ones_like(self._Sa, dtype=np.float32)
@@ -146,11 +151,11 @@ class PorterDuff(object):
 
     def _darken_mode(self):  # [Sa + Da - Sa*Da, Sc*(1 - Da) + Dc*(1 - Sa) + min(Sc, Dc)]
         self._Oa = self._Sa + self._Da - self._Sa * self._Da
-        self._Oc = self._Sc * (1 - self._Da) + self._Dc * (1 - self._Sa) + np.min([self._Sc, self._Dc])
+        self._Oc = self._Sc * (1 - self._Da) + self._Dc * (1 - self._Sa) + np.min([self._Sc, self._Dc], axis=0)
 
     def _lighten_mode(self):  # [Sa + Da - Sa*Da, Sc*(1 - Da) + Dc*(1 - Sa) + max(Sc, Dc)]
         self._Oa = self._Sa + self._Da - self._Sa * self._Da
-        self._Oc = self._Sc * (1 - self._Da) + self._Dc * (1 - self._Sa) + np.max([self._Sc, self._Dc])
+        self._Oc = self._Sc * (1 - self._Da) + self._Dc * (1 - self._Sa) + np.max([self._Sc, self._Dc], axis=0)
 
     def _multiply_mode(self):  # [Sa * Da, Sc * Dc]
         self._Oa = self._Sa * self._Da
@@ -181,5 +186,5 @@ if __name__ == '__main__':
     destination_arr = np.array(destination_img)
 
     out_path = r'C:\Users\anonymous\Desktop\1\out.png'
-    out_arr = porter_duff(PorterDuff.MULTIPLY)
+    out_arr = porter_duff(PorterDuff.DARKEN)
     Image.fromarray(out_arr, "RGBA").save(out_path)

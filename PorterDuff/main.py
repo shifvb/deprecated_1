@@ -1,8 +1,8 @@
 import os
 import numpy as np
 from PIL import Image
-from PorterDuff.porter_duff import PorterDuff
-from PorterDuff.truecolor import gray2color
+from PorterDuff.PorterDuff import PorterDuff
+from PorterDuff.gray2color import gray2color
 
 
 def main():

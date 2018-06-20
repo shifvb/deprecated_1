@@ -174,17 +174,16 @@ class PorterDuff(object):
         self._Oc = 2 * self._Dc * self._Sc
 
 
-def porter_duff(mode):
-    _pd = PorterDuff(source_arr, destination_arr)
-    return _pd.alpha_composition(mode)
+def porter_duff(x, y, mode):
+    return PorterDuff(x, y).alpha_composition(mode)
 
 
 if __name__ == '__main__':
-    source_img = Image.open(r"C:\Users\anonymous\Desktop\1\source.png").convert(mode='RGBA')
-    destination_img = Image.open(r"C:\Users\anonymous\Desktop\1\destination.png").convert(mode='RGBA')
+    source_img = Image.open(r"img\source.png").convert(mode='RGBA')
+    destination_img = Image.open(r"img\destination.png").convert(mode='RGBA')
     source_arr = np.array(source_img)
     destination_arr = np.array(destination_img)
 
-    out_path = r'C:\Users\anonymous\Desktop\1\out.png'
-    out_arr = porter_duff(PorterDuff.OVERLAY)
+    out_path = r'img\out.png'
+    out_arr = porter_duff(source_arr, destination_arr, PorterDuff.DARKEN)
     Image.fromarray(out_arr, "RGBA").save(out_path)

@@ -1,5 +1,5 @@
 import tensorflow as tf
-from SpatialTransformer_modify_work.models.bicubic_interp import bicubic_interp_2d
+from SpatialTransformer_modify_work.modifywork.bicubic_interp import bicubic_interp_2d
 
 
 class SpatialTransformer(object):
@@ -101,10 +101,11 @@ class SpatialTransformer(object):
 
         print("[WARN] todo : remove -0.5 and -0.6")
         # scale indices from [-1, 1] to [0, width/height]
-        x = tf.cast(tf.reshape(x, [-1]), 'float32')
-        y = tf.cast(tf.reshape(y, [-1]), 'float32')
+
         x = (x + 1.0) * tf.to_float(width) / 2.0 - 0.5  # todo: remove -0.5
         y = (y + 1.0) * tf.to_float(height) / 2.0 - 0.6  # todo: remove -0.6
+        x = tf.cast(tf.reshape(x, [-1]), 'float32')
+        y = tf.cast(tf.reshape(y, [-1]), 'float32')
 
         max_x = tf.cast(width - 1, 'int32')
         max_y = tf.cast(height - 1, 'int32')

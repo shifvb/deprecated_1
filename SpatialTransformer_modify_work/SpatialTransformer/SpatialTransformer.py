@@ -1,5 +1,5 @@
 import tensorflow as tf
-from SpatialTransformer_modify_work.bicubic_interp import bicubic_interp_2d
+from SpatialTransformer_modify_work.interpolate.bicubic_interp import bicubic_interp_2d
 
 
 class SpatialTransformer(object):

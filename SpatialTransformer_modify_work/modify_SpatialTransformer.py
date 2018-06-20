@@ -1,9 +1,9 @@
 import numpy as np
 from PIL import Image
 import tensorflow as tf
-from SpatialTransformer_modify_work.preprocess.get_images_arr import get_images_arr
-from SpatialTransformer_modify_work.gen_diff_arr import gen_diff_arr
-from SpatialTransformer_modify_work.SpatialTransformer import SpatialTransformer
+from SpatialTransformer_modify_work.imgprocess.get_images_arr import get_images_arr
+from SpatialTransformer_modify_work.imgprocess.gen_diff_arr import gen_diff_arr
+from SpatialTransformer_modify_work.SpatialTransformer.SpatialTransformer import SpatialTransformer
 
 
 def main():

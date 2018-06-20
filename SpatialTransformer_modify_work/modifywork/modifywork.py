@@ -1,15 +1,15 @@
 import numpy as np
 from PIL import Image
 import tensorflow as tf
-from SpatialTransformer_modify_work.modifywork.get_images_arr import get_images_arr
+from SpatialTransformer_modify_work.modifywork.preprocess.get_images_arr import get_images_arr
 from SpatialTransformer_modify_work.modifywork.gen_diff_arr import gen_diff_arr
 from SpatialTransformer_modify_work.modifywork.SpatialTransformer import SpatialTransformer
 
 
 def main():
     # 图像数据
-    img_arr = get_images_arr(r"F:\tmp2")[5, :, :, 0].reshape([1, 216, 384, 1])
-    Image.fromarray(255 - img_arr[0, :, :, 0], "L").save("f:\\tmp3\\original.png")
+    img_arr = get_images_arr(r"img")
+    Image.fromarray(255 - img_arr[0, :, :, 0], "L").save("img_out\\original.png")
 
     # 形变场向量
     def_vec_x = np.array([
@@ -33,13 +33,13 @@ def main():
         result = sess.run(z)
         print(result.shape, result.dtype)
         result = result.astype(np.uint8)
-        Image.fromarray(255 - result[0, :, :, 0], "L").save(r"F:\tmp3\transformed.png")
+        Image.fromarray(255 - result[0, :, :, 0], "L").save(r"img_out\transformed.png")
 
 
 if __name__ == '__main__':
     main()
     gen_diff_arr(
-        x_path=r"F:\tmp3\transformed.png",
-        y_path=r"F:\tmp3\original.png",
-        out_path=r"f:\tmp3\diff.png"
+        x_path=r"img_out\transformed.png",
+        y_path=r"img_out\original.png",
+        out_path=r"img_out\diff.png"
     )

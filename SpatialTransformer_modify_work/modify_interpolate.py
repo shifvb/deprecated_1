@@ -6,14 +6,16 @@ from SpatialTransformer_modify_work.interpolate.bicubic_interp import bicubic_in
 
 
 def main():
-    img = Image.open(r"C:\Users\anonymous\Desktop\1\lozman.png").convert(mode='RGB')
+    img = Image.open(r"C:\Users\anonymous\Desktop\1\lozman.png").convert(mode='RGB').resize([8, 8])
+    img.save("d.png")
     img_arr = np.array(img)
-    img_tsr = tf.reshape(tf.Variable(img_arr, dtype=tf.float32), [1, 20, 21, 3])
+    img_tsr = tf.reshape(tf.Variable(img_arr, dtype=tf.float32), [1, 8, 8, 3])
+    img_tsr = tf.tile(img_tsr, [32, 1, 1, 1])
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        # output = bicubic_interp_2d(img_tsr, (320, 336))
-        output = tf.image.resize_bicubic(img_tsr, [320, 336])
+        output = bicubic_interp_2d(img_tsr, (128, 128))
+        # output = tf.image.resize_bicubic(img_tsr, [128, 128])
         r = sess.run(output)[0, :, :, :]
         r = np.clip(r, 0, 255).astype(np.uint8)
         print(r)

@@ -23,8 +23,8 @@ def bicubic_interp_2d(input_, new_size):
         b = A + B * -2.5 + C * 2.0 + D * -0.5
         c = A * -0.5 + C * 0.5
         d = B
-
-        return a * t * t * t + b * t * t + c * t + d
+        # return a * t * t * t + b * t * t + c * t + d
+        return (a * t ** 2 + b * t + c) * t + d
 
     def _get_grid_array(n_i, y_i, x_i, c_i):
         n, y, x, c = np.meshgrid(n_i, y_i, x_i, c_i, indexing='ij')

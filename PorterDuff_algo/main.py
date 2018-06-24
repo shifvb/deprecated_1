@@ -1,8 +1,8 @@
 import os
 import numpy as np
 from PIL import Image
-from PorterDuff.PorterDuff import PorterDuff
-from PorterDuff.gray2color import gray2color
+from PorterDuff_algo.PorterDuff import PorterDuff
+from PorterDuff_algo.gray2color import gray2color
 
 
 def main():
@@ -40,7 +40,7 @@ def main():
     print(fix_arr.shape, fix_arr.dtype)
 
     pd = PorterDuff(mov_arr, fix_arr)
-    out_arr = pd.alpha_composition(mode=PorterDuff.OVERLAY)
+    out_arr = pd.alpha_composition(mode=PorterDuff.XOR)
     Image.fromarray(mov_arr.astype(np.uint8)).save(r"C:\Users\anonymous\Desktop\2\mov_out.png")
     Image.fromarray(fix_arr.astype(np.uint8)).save(r"C:\Users\anonymous\Desktop\2\fix_out.png")
     Image.fromarray(out_arr).save(r"C:\Users\anonymous\Desktop\2\out.png")

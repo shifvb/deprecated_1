@@ -12,7 +12,8 @@ def main():
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        output = bicubic_interp_2d(img_tsr, (320, 336))
+        # output = bicubic_interp_2d(img_tsr, (320, 336))
+        output = tf.image.resize_bicubic(img_tsr, [320, 336])
         r = sess.run(output)[0, :, :, :]
         r = np.clip(r, 0, 255).astype(np.uint8)
         print(r)

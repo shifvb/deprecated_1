@@ -1,5 +1,4 @@
 import tensorflow as tf
-from DIRNet_for_PETCT_images.models.bicubic_interp import bicubic_interp_2d
 
 
 class SpatialTransformer(object):
@@ -27,7 +26,7 @@ class SpatialTransformer(object):
 
     def __call__(self, U, V):
         # deformation field
-        V = bicubic_interp_2d(V, U.shape[1:3])  # [n, h, w, 2]
+        V = tf.image.resize_images(V, U.shape[1:3], tf.image.ResizeMethod.BICUBIC)  # [n, h, w, 2]
         dx = V[:, :, :, 0]  # [n, h, w]
         dy = V[:, :, :, 1]  # [n, h, w]
         return self._transform(U, dx, dy)

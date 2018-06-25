@@ -3,8 +3,6 @@ import tensorflow as tf
 import numpy as np
 from PIL import Image
 
-from SpatialTransformer_modify_work.interpolate.bicubic_interp import bicubic_interp_2d
-
 
 def main():
     img = Image.open(r"C:\Users\anonymous\Desktop\1\lozman.png").convert(mode='RGB').resize([8, 8])

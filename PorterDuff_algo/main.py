@@ -10,27 +10,35 @@ def main(mov_arr, fix_arr):
     mov_arr_a = mov_arr[:, :, 3:]
 
     # 去除暗的
-    # low_gray_level_pos = mov_arrmov_arr[:, :, :3]
+    mov_arr_c = np.clip(mov_arr_c, 100, 255)
 
     # 归一化
-    mov_arr_c = mov_arr_c / (mov_arr_c.max() - mov_arr_c.min()) * 255
+    mov_arr_c = (mov_arr_c - mov_arr_c.min()) / (mov_arr_c.max() - mov_arr_c.min()) * 255
 
     # 生成伪彩色
     mov_arr_c = mov_arr_c.astype(np.uint8)
     mov_arr_c = gray2color(mov_arr_c[:, :, 0])  # R
 
     # 调整alpha值
-    mov_arr_a = np.ones_like(mov_arr_a, dtype=np.float32) * 255 * 0.4
+    Image.fromarray(fix_arr.astype(np.uint8)).save(r"C:\Users\anonymous\Desktop\2\fix_out.png")
+    Image.fromarray(np.concatenate([mov_arr_c, mov_arr_a], axis=2).
+                    astype(np.uint8)).save(r"C:\Users\anonymous\Desktop\2\mov_out.png")
+    mov_arr_a = np.ones_like(mov_arr_a, dtype=np.float32) * 255 * 0.1
+
+    # 合并alpha和color
     mov_arr = np.concatenate([mov_arr_c, mov_arr_a], axis=2)
     print(mov_arr.dtype)
 
     # 图像融合
     pd = PorterDuff(mov_arr, fix_arr)
     out_arr = pd.alpha_composition(mode=PorterDuff.DARKEN)
-    Image.fromarray(mov_arr.astype(np.uint8)).save(r"C:\Users\anonymous\Desktop\2\mov_out.png")
-    Image.fromarray(fix_arr.astype(np.uint8)).save(r"C:\Users\anonymous\Desktop\2\fix_out.png")
+
+    # 保存图像
+    out_arr_c = out_arr[:, :, :3]
+    out_arr_a = out_arr[:, :, 3:]
+    out_arr_c = (out_arr_c - out_arr_c.min()) / (out_arr_c.max() - out_arr_c.min()) * 255
+    out_arr = np.concatenate([out_arr_c, out_arr_a], axis=2).astype(np.uint8)
     Image.fromarray(out_arr).save(r"C:\Users\anonymous\Desktop\2\out.png")
-    # Image.fromarray(mov_arr.astype(np.uint8)).save(r"C:\Users\anonymous\Desktop\2\mov_out.png")
 
 
 if __name__ == '__main__':

@@ -8,6 +8,7 @@ def _get_jet():
         colormap_int[i, 0] = np.int_(np.round(cm.jet(i)[0] * 255.0))
         colormap_int[i, 1] = np.int_(np.round(cm.jet(i)[1] * 255.0))
         colormap_int[i, 2] = np.int_(np.round(cm.jet(i)[2] * 255.0))
+    colormap_int[0] = [0, 0, 0]  # 灰度值为0，就是纯黑的，而不是蓝色
     return colormap_int
 
 

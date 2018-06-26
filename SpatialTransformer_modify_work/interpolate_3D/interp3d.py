@@ -42,6 +42,8 @@ def load_arrs(load_dir):
 
 
 def save_arrs(arrs, save_dir):
+    if not os.path.exists(save_dir):
+        os.mkdir(save_dir)
     name = os.path.join(os.path.abspath(save_dir), "batch_{}_depth_{}.jpg")
     for batch_num in range(arrs.shape[0]):
         for depth_num in range(arrs.shape[3]):
@@ -56,9 +58,8 @@ def interpolate_3d(arrs):
 def main():
     # gen_images("img")
     arrs = load_arrs("img")
-    # arrs2 = interpolate_3d(arrs)
     save_arrs(arrs, "img_out_origin")
-    # save_arrs(arrs2)
+    save_arrs(interpolate_3d(arrs), "img_out")
 
 
 if __name__ == '__main__':

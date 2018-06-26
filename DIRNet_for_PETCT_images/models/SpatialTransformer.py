@@ -26,7 +26,7 @@ class SpatialTransformer(object):
 
     def __call__(self, U, V):
         # deformation field
-        V = tf.image.resize_bicubic(V, U.shape[1:3])  # [n, h, w, 2]
+        V = tf.image.resize_bicubic(V, U.shape[1:3], True)  # [n, h, w, 2]
         dx = V[:, :, :, 0]  # [n, h, w]
         dy = V[:, :, :, 1]  # [n, h, w]
         return self._transform(U, dx, dy)

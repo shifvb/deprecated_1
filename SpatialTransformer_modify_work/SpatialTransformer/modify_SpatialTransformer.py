@@ -19,18 +19,20 @@ def main():
     ], dtype=np.float32)
     def_vec_y = np.array([
         [0, 0, 0],
-        [0, 0, 0],
+        [0, 0.5, 0],
         [0, 0, 0]
     ], dtype=np.float32)
     def_vec = np.stack([def_vec_x, def_vec_y], axis=2).reshape([1, 3, 3, 2])
     def_tsr = tf.Variable(def_vec, dtype=tf.float32)
 
     # SpatialTransformer
-    z = SpatialTransformer()(img_arr, def_tsr)
+    st = SpatialTransformer()
+    z = st(img_arr, def_tsr)
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        result = sess.run(z)
+        result, ma, mi = sess.run([z, st.ma, st.mi])
+        print(ma, mi)
         print(result.shape, result.dtype)
         result = result.astype(np.uint8)
         Image.fromarray(255 - result[0, :, :, 0], "L").save(r"img_out\transformed.png")

@@ -101,6 +101,8 @@ class SpatialTransformer(object):
         # scale indices from [-1, 1] to [0, width/height]
         x = (x + 1.0) * tf.to_float(width) / 2.0
         y = (y + 1.0) * tf.to_float(height) / 2.0
+        self.ma = tf.reduce_max(x)
+        self.mi = tf.reduce_min(x)
         x = tf.cast(tf.reshape(x, [-1]), 'float32')
         y = tf.cast(tf.reshape(y, [-1]), 'float32')
 

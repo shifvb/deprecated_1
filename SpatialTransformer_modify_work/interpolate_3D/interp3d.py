@@ -4,7 +4,7 @@ import tensorflow as tf
 from PIL import Image
 
 
-def gen_images(save_path):
+def gen_images(save_path, n, h, w, d, c):
     # 删除
     if os.path.exists(save_path):
         [os.remove(os.path.join(save_path, _)) for _ in os.listdir(save_path)]
@@ -12,12 +12,12 @@ def gen_images(save_path):
     os.mkdir(save_path)
     # 生成 & 保存
     name = os.path.join(save_path, "batch_{}_depth_{}.jpg")
-    for batch_num in range(batch_size):
-        for depth_num in range(img_depth):
+    for batch_num in range(n):
+        for depth_num in range(d):
             # 生成每个slice/depth的array
-            _arr = np.zeros(shape=[img_height, img_width, img_channel], dtype=np.uint8)
-            for row_num in range(img_height):
-                for col_num in range(img_width):
+            _arr = np.zeros(shape=[h, w, c], dtype=np.uint8)
+            for row_num in range(h):
+                for col_num in range(w):
                     if row_num ** 2 + col_num ** 2 < depth_num ** 2:
                         _L = [batch_num, batch_num, batch_num]
                         _L[depth_num % 3] += 1
@@ -32,11 +32,11 @@ def gen_images(save_path):
             Image.fromarray(_arr, "RGB").save(name.format(batch_num, depth_num))
 
 
-def load_arrs(load_dir):
+def load_arrs(load_dir, n):
     load_dir = os.path.abspath(load_dir)
     img_names = [os.path.join(load_dir, _) for _ in os.listdir(load_dir)]
     _L = []
-    for batch_num in range(batch_size):
+    for batch_num in range(n):
         # 获取单个batch并排序
         batch_img_names = list(filter(lambda _: "batch_{}".format(batch_num) in _, img_names))
         batch_img_names.sort(key=lambda _: int(_.split(".")[0].split("_")[-1]))
@@ -61,33 +61,34 @@ def save_arrs(arrs, save_dir):
             Image.fromarray(_arr).save(name.format(batch_num, depth_num))
 
 
-def interpolate_3d(arrs):
-    arrs_tsr = tf.constant(arrs, dtype=tf.float32)
+def interpolate_3d(arr, n, h, w, d, c, s):
     # [n, h, w, d, c] -> [n, h*s, w*s, d, c]
-    arrs_tsr = tf.reshape(arrs_tsr, [batch_size, img_height, img_width, img_depth * img_channel])
-    arrs_tsr = tf.image.resize_bicubic(arrs_tsr, [img_height * scale, img_width * scale], True)
-    arrs_tsr = tf.reshape(arrs_tsr, [batch_size, img_height * scale, img_width * scale, img_depth, img_channel])
-    #
-    arrs_tsr = tf.reshape(arrs_tsr, [batch_size, img_height * scale * img_width * scale, img_depth, img_channel])
-    arrs_tsr = tf.image.resize_bicubic(arrs_tsr, [img_height * scale * img_width * scale, img_depth * scale], True)
-    arrs_tsr = tf.reshape(arrs_tsr, [batch_size, img_height * scale, img_width * scale, img_depth * scale, img_channel])
-
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        result = sess.run(arrs_tsr)
-        result = np.clip(result, 0, 255).astype(np.uint8)
-    return result
+    arr = tf.reshape(arr, [n, h, w, d * c])
+    arr = tf.image.resize_bicubic(arr, [h * s, w * s], True)
+    # [n, h*s, w*s, d, c] -> [n, h*s, w*s, d*s, c]
+    arr = tf.reshape(arr, [n, h * s * w * s, d, c])
+    arr = tf.image.resize_bicubic(arr, [h * s * w * s, d * s], True)
+    return tf.reshape(arr, [n, h * s, w * s, d * s, c])
 
 
 def main():
-    gen_images("img")
-    arrs = load_arrs("img")
+    img_size, scale = [2, 25, 30, 20, 3], 4
+
+    # 生成测试图像
+    gen_images("img", *img_size)
+
+    # 加载测试图像
+    arrs = load_arrs("img", img_size[0])
+    arrs_tsr = tf.constant(arrs, dtype=tf.float32)
+
+    # 生成插值图像
     save_arrs(arrs, "img_out_origin")
-    save_arrs(interpolate_3d(arrs), "img_out")
+    with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
+        result = sess.run(interpolate_3d(arrs_tsr, *img_size, scale))
+        result = np.clip(result, 0, 255).astype(np.uint8)
+    save_arrs(result, "img_out")
 
 
 if __name__ == '__main__':
-    batch_size, img_height, img_width, img_depth, img_channel = 2, 25, 30, 20, 3
-    scale = 4
-    dest_height, dest_width, dest_depth = img_height * scale, img_width * scale, img_depth * scale
     main()

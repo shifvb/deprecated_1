@@ -5,13 +5,19 @@ from PIL import Image
 
 
 def gen_images(save_path):
+    # 删除
+    if os.path.exists(save_path):
+        [os.remove(os.path.join(save_path, _)) for _ in os.listdir(save_path)]
+        os.rmdir(save_path)
+    os.mkdir(save_path)
+    # 生成 & 保存
     name = os.path.join(save_path, "batch_{}_depth_{}.jpg")
     for batch_num in range(batch_size):
-        for depth_num in range(image_depth):
+        for depth_num in range(img_depth):
             # 生成每个slice/depth的array
-            _arr = np.zeros(shape=[image_height, image_width, image_channel], dtype=np.uint8)
-            for row_num in range(image_height):
-                for col_num in range(image_width):
+            _arr = np.zeros(shape=[img_height, img_width, img_channel], dtype=np.uint8)
+            for row_num in range(img_height):
+                for col_num in range(img_width):
                     if row_num ** 2 + col_num ** 2 < depth_num ** 2:
                         _L = [batch_num, batch_num, batch_num]
                         _L[depth_num % 3] += 1
@@ -42,8 +48,12 @@ def load_arrs(load_dir):
 
 
 def save_arrs(arrs, save_dir):
-    if not os.path.exists(save_dir):
-        os.mkdir(save_dir)
+    # 删除
+    if os.path.exists(save_dir):
+        [os.remove(os.path.join(save_dir, _)) for _ in os.listdir(save_dir)]
+        os.rmdir(save_dir)
+    os.mkdir(save_dir)
+    # 保存
     name = os.path.join(os.path.abspath(save_dir), "batch_{}_depth_{}.jpg")
     for batch_num in range(arrs.shape[0]):
         for depth_num in range(arrs.shape[3]):
@@ -52,18 +62,32 @@ def save_arrs(arrs, save_dir):
 
 
 def interpolate_3d(arrs):
-    return arrs
+    arrs_tsr = tf.constant(arrs, dtype=tf.float32)
+    # [n, h, w, d, c] -> [n, h*s, w*s, d, c]
+    arrs_tsr = tf.reshape(arrs_tsr, [batch_size, img_height, img_width, img_depth * img_channel])
+    arrs_tsr = tf.image.resize_bicubic(arrs_tsr, [img_height * scale, img_width * scale], True)
+    arrs_tsr = tf.reshape(arrs_tsr, [batch_size, img_height * scale, img_width * scale, img_depth, img_channel])
+    #
+    arrs_tsr = tf.reshape(arrs_tsr, [batch_size, img_height * scale * img_width * scale, img_depth, img_channel])
+    arrs_tsr = tf.image.resize_bicubic(arrs_tsr, [img_height * scale * img_width * scale, img_depth * scale], True)
+    arrs_tsr = tf.reshape(arrs_tsr, [batch_size, img_height * scale, img_width * scale, img_depth * scale, img_channel])
+
+    with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
+        result = sess.run(arrs_tsr)
+        result = np.clip(result, 0, 255).astype(np.uint8)
+    return result
 
 
 def main():
-    # gen_images("img")
+    gen_images("img")
     arrs = load_arrs("img")
     save_arrs(arrs, "img_out_origin")
     save_arrs(interpolate_3d(arrs), "img_out")
 
 
 if __name__ == '__main__':
-    batch_size, image_height, image_width, image_depth, image_channel = 2, 25, 30, 20, 3
+    batch_size, img_height, img_width, img_depth, img_channel = 2, 25, 30, 20, 3
     scale = 4
-    target_height, target_width, target_depth = image_height * scale, image_width * scale, image_depth * scale
+    dest_height, dest_width, dest_depth = img_height * scale, img_width * scale, img_depth * scale
     main()

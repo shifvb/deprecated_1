@@ -1,5 +1,7 @@
 import tensorflow as tf
 
+__last__modified__ = "2018_06_26 20:12"
+
 
 class SpatialTransformer(object):
     """Deformable Transformer Layer with bicubic interpolation
@@ -26,7 +28,7 @@ class SpatialTransformer(object):
 
     def __call__(self, U, V):
         # deformation field
-        V = tf.image.resize_bicubic(V, U.shape[1:3], True)  # [n, h, w, 2]
+        V = tf.image.resize_bicubic(V, U.shape[1:3], align_corners=True)  # [n, h, w, 2]
         dx = V[:, :, :, 0]  # [n, h, w]
         dy = V[:, :, :, 1]  # [n, h, w]
         return self._transform(U, dx, dy)
@@ -98,12 +100,11 @@ class SpatialTransformer(object):
         out_height = x.shape[1]
         out_width = x.shape[2]
 
-        print("[WARN] todo : remove -0.5 and -0.6")
         # scale indices from [-1, 1] to [0, width/height]
+        x = (x + 1.0) * tf.to_float(width) / 2.0
+        y = (y + 1.0) * tf.to_float(height) / 2.0
         x = tf.cast(tf.reshape(x, [-1]), 'float32')
         y = tf.cast(tf.reshape(y, [-1]), 'float32')
-        x = (x + 1.0) * tf.to_float(width) / 2.0 - 0.5  # todo: remove -0.5
-        y = (y + 1.0) * tf.to_float(height) / 2.0 - 0.6  # todo: remove -0.6
 
         max_x = tf.cast(width - 1, 'int32')
         max_y = tf.cast(height - 1, 'int32')

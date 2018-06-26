@@ -5,35 +5,55 @@ from PIL import Image
 
 
 def gen_images(save_path):
-    batch_size = 1
-    image_height = 32
-    image_width = 32
-    image_depth = 32
-    image_channel = 3
-
-    # scale = 4
-    #
-    # target_height = image_height * scale
-    # target_width = image_width * scale
-    # target_depth = image_depth * scale
-
     name = os.path.join(save_path, "batch_{}_depth_{}.jpg")
     for batch_num in range(batch_size):
         for depth_num in range(image_depth):
+            # 生成每个slice/depth的array
             _arr = np.zeros(shape=[image_height, image_width, image_channel], dtype=np.uint8)
             for row_num in range(image_height):
                 for col_num in range(image_width):
                     if row_num ** 2 + col_num ** 2 < depth_num ** 2:
-                        _L = [1, 1, 1]
-                        _L[depth_num % 3] = 2
+                        _L = [batch_num, batch_num, batch_num]
+                        _L[depth_num % 3] += 1
                         _arr[row_num, col_num] = _L
-            _arr = ((_arr - _arr.min()) / (_arr.max() - _arr.min()) * 255).astype(np.uint8)
+                    else:
+                        _arr[row_num, col_num] = [0, 0, 0]
+            # 归一化
+            if _arr.max() - _arr.min() == 0:
+                _arr[:] = 0
+            else:
+                _arr = ((_arr - _arr.min()) / (_arr.max() - _arr.min()) * 255).astype(np.uint8)
             Image.fromarray(_arr, "RGB").save(name.format(batch_num, depth_num))
 
 
+def load_arrs(load_dir):
+    load_dir = os.path.abspath(load_dir)
+    img_names = [os.path.join(load_dir, _) for _ in os.listdir(load_dir)]
+    _L = []
+    for batch_num in range(batch_size):
+        # 获取单个batch并排序
+        batch_img_names = list(filter(lambda _: "batch_{}".format(batch_num) in _, img_names))
+        batch_img_names.sort(key=lambda _: int(_.split(".")[0].split("_")[-1]))
+        # 加载图像
+        _arr = np.stack([np.array(Image.open(_)) for _ in batch_img_names], axis=2)  # [height, width, depth, channel]
+        _L.append(_arr)
+    _arrs = np.stack(_L, axis=0)  # [batch, height, width, depth, channel]
+    return _arrs
+
+def interpolate_3d(arrs):
+    return arrs
+
+
 def main():
-    gen_images("img")
+    # gen_images("img")
+    arrs = load_arrs("img")
+    # arrs2 = interpolate_3d(arrs)
+    # save_arrs(arrs)
+    # save_arrs(arrs2)
 
 
 if __name__ == '__main__':
+    batch_size, image_height, image_width, image_depth, image_channel = 2, 25, 30, 20, 3
+    scale = 4
+    target_height, target_width, target_depth = image_height * scale, image_width * scale, image_depth * scale
     main()

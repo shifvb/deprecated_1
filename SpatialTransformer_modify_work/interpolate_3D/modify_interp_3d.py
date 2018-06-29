@@ -63,7 +63,8 @@ def save_arrs(arrs, save_dir):
 
 
 def analog_test():
-    img_size, scale = [2, 25, 30, 20, 3], 4
+    img_size = [2, 25, 30, 20, 3]
+    out_size = [2, 100, 120, 120, 3]
 
     # 生成测试图像
     gen_images("analog_img", *img_size)
@@ -76,7 +77,7 @@ def analog_test():
     save_arrs(arrs, "analog_img_out_origin")
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        result = sess.run(interpolate_3d(arrs_tsr, *img_size, scale))
+        result = sess.run(interpolate_3d(arrs_tsr, *img_size, *out_size[1:-1]))
         result = np.clip(result, 0, 255).astype(np.uint8)
     save_arrs(result, "analog_img_out")
 
@@ -99,5 +100,5 @@ def natural_test():
 
 
 if __name__ == '__main__':
-    # analog_test()
-    natural_test()
+    analog_test()
+    # natural_test()

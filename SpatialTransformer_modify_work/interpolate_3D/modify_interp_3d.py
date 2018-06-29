@@ -40,7 +40,7 @@ def load_arrs(load_dir, n):
     for batch_num in range(n):
         # 获取单个batch并排序
         batch_img_names = list(filter(lambda _: "batch_{}".format(batch_num) in _, img_names))
-        batch_img_names.sort(key=lambda _: int(_.split(".")[0].split("_")[-1]))
+        batch_img_names.sort(key=lambda _: int(os.path.split(_)[-1].split(".")[0].split("_")[-1]))
         # 加载图像
         _arr = np.stack([np.array(Image.open(_)) for _ in batch_img_names], axis=2)  # [height, width, depth, channel]
         _L.append(_arr)
@@ -81,5 +81,23 @@ def analog_test():
     save_arrs(result, "analog_img_out")
 
 
+def natural_test():
+    img_size = [1, 540, 960, 3, 3]
+    out_size = [1, 540, 960, 320, 3]
+
+    # 加载自然图像
+    arrs = load_arrs(r"C:\Users\anonymous\Desktop\新建文件夹", img_size[0])
+    arrs_tsr = tf.constant(arrs, dtype=tf.float32)
+
+    # 生成插值图像
+    save_arrs(arrs, "nature_img_out_origin")
+    with tf.Session("grpc://172.16.10.50:2222") as sess:
+        sess.run(tf.global_variables_initializer())
+        result = sess.run(interpolate_3d(arrs_tsr, *img_size, *out_size[1:-1]))
+        result = np.clip(result, 0, 255).astype(np.uint8)
+    save_arrs(result, "nature_img_out")
+
+
 if __name__ == '__main__':
-    analog_test()
+    # analog_test()
+    natural_test()

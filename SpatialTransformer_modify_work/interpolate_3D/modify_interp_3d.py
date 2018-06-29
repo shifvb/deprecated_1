@@ -62,24 +62,24 @@ def save_arrs(arrs, save_dir):
             Image.fromarray(_arr).save(name.format(batch_num, depth_num))
 
 
-def main():
+def analog_test():
     img_size, scale = [2, 25, 30, 20, 3], 4
 
     # 生成测试图像
-    gen_images("img", *img_size)
+    gen_images("analog_img", *img_size)
 
     # 加载测试图像
-    arrs = load_arrs("img", img_size[0])
+    arrs = load_arrs("analog_img", img_size[0])
     arrs_tsr = tf.constant(arrs, dtype=tf.float32)
 
     # 生成插值图像
-    save_arrs(arrs, "img_out_origin")
+    save_arrs(arrs, "analog_img_out_origin")
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         result = sess.run(interpolate_3d(arrs_tsr, *img_size, scale))
         result = np.clip(result, 0, 255).astype(np.uint8)
-    save_arrs(result, "img_out")
+    save_arrs(result, "analog_img_out")
 
 
 if __name__ == '__main__':
-    main()
+    analog_test()

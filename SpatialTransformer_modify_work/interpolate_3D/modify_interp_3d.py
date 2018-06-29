@@ -86,12 +86,12 @@ def natural_test():
     out_size = [1, 540, 960, 320, 3]
 
     # 加载自然图像
-    arrs = load_arrs(r"C:\Users\anonymous\Desktop\新建文件夹", img_size[0])
+    arrs = load_arrs(r"nature_img", img_size[0])
     arrs_tsr = tf.constant(arrs, dtype=tf.float32)
 
     # 生成插值图像
     save_arrs(arrs, "nature_img_out_origin")
-    with tf.Session("grpc://172.16.10.50:2222") as sess:
+    with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         result = sess.run(interpolate_3d(arrs_tsr, *img_size, *out_size[1:-1]))
         result = np.clip(result, 0, 255).astype(np.uint8)

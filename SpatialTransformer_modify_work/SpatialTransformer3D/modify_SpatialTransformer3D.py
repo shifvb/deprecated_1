@@ -6,9 +6,36 @@ from SpatialTransformer_modify_work.SpatialTransformer3D.SpatialTransformer3D im
 
 
 def main():
+    # 图像数据
     arrs = load_arrs("img", 1)
     save_arrs(arrs, "img_original")
-    pass
+
+    #
+    def_vec_x = np.array([
+        [[0, 0], [0, 0]],
+        [[0, 0], [0, 0]],
+    ], dtype=np.float32)
+    def_vec_y = np.array([
+        [[0, 0], [0, 0]],
+        [[0, 0], [0, 0]],
+    ], dtype=np.float32)
+    def_vec_z = np.array([
+        [[0, 0], [0, 0]],
+        [[0, 0], [0, 0]],
+    ], dtype=np.float32)
+    def_vec = np.stack([def_vec_x, def_vec_y, def_vec_z], axis=3).reshape([1, 2, 2, 2, 3])
+    def_tsr = tf.Variable(def_vec, dtype=tf.float32)
+
+    # SpatialTransformer3D
+    st3 = SpatialTransformer3D()
+    z = st3(arrs, def_tsr)
+
+    with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
+        result = sess.run(z)
+        print(result.shape, result.dtype)
+        result = result.astype(np.uint8)
+        save_arrs(result, "img_out")
 
 
 def load_arrs(load_dir, n):

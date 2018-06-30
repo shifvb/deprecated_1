@@ -4,7 +4,7 @@ from SpatialTransformer_modify_work.interpolate_3D.interp3d import interpolate_3
 
 class SpatialTransformer3D(object):
     def __call__(self, img, def_vec):
-        def_vec = interpolate_3d(def_vec, *def_vec.shape, *img.shape[1:3])
+        def_vec = interpolate_3d(def_vec, *def_vec.shape, *img.shape[1:4])
         dx = def_vec[:, :, :, :, 0]
         dy = def_vec[:, :, :, :, 1]
         dz = def_vec[:, :, :, :, 2]

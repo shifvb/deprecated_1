@@ -3,6 +3,11 @@ from SpatialTransformer_modify_work.interpolate_3D.interp3d import interpolate_3
 
 
 class SpatialTransformer3D(object):
+    """
+    3D version of SpatialTransformer
+    Reference:
+        # todo: reference_1(3d_dense), reference_2(2d_WarpST)
+    """
     def __call__(self, img, def_vec):
         def_vec = interpolate_3d(def_vec, *def_vec.shape, *img.shape[1:4])
         dx = def_vec[:, :, :, :, 0]

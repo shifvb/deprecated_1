@@ -12,18 +12,21 @@ def main():
 
     #
     def_vec_x = np.array([
-        [[0, 0], [0, 0]],
-        [[0, 0], [0, 0]],
+        [[0, 0], [0, 0], [0, 0]],
+        [[0, 0], [0, 0], [0, 0]],
+        [[0, 0], [0, 0], [0, 0]],
     ], dtype=np.float32)
     def_vec_y = np.array([
-        [[0, 0], [0, 0]],
-        [[0, 0], [0, 0]],
+        [[0, 0], [0, 0], [0, 0]],
+        [[0, 0], [0, 0], [0, 0]],
+        [[0, 0], [0, 0], [0, 0]],
     ], dtype=np.float32)
     def_vec_z = np.array([
-        [[0, 0], [0, 0]],
-        [[0, 0], [0, 0]],
-    ], dtype=np.float32)
-    def_vec = np.stack([def_vec_x, def_vec_y, def_vec_z], axis=3).reshape([1, 2, 2, 2, 3])
+        [[-10, -10], [-10, -10], [-10, -10]],
+        [[-10, -10], [0, 0], [-10, -10]],
+        [[-10, -10], [-10, -10], [-10, -10]],
+    ], dtype=np.float32) * 3
+    def_vec = np.stack([def_vec_x, def_vec_y, def_vec_z], axis=3).reshape([1, 3, 3, 2, 3])
     def_tsr = tf.Variable(def_vec, dtype=tf.float32)
 
     # SpatialTransformer3D

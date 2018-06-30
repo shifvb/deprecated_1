@@ -83,8 +83,8 @@ def analog_test():
 
 
 def natural_test():
-    img_size = [1, 540, 960, 3, 3]
-    out_size = [1, 540, 960, 320, 3]
+    img_size = [1, 128, 128, 2, 3]
+    out_size = [1, 128, 128, 64, 3]
 
     # 加载自然图像
     arrs = load_arrs(r"nature_img", img_size[0])
@@ -100,5 +100,5 @@ def natural_test():
 
 
 if __name__ == '__main__':
-    analog_test()
-    # natural_test()
+    # analog_test()
+    natural_test()

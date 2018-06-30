@@ -1,14 +1,17 @@
+import os
 import numpy as np
 from PIL import Image
 import tensorflow as tf
-from SpatialTransformer_modify_work.imgprocess.get_images_arr import get_images_arr
-from SpatialTransformer_modify_work.imgprocess.gen_diff_arr import gen_diff_arr
+from SpatialTransformer_modify_work.SpatialTransformer.imgprocess.get_images_arr import get_images_arr
+from SpatialTransformer_modify_work.SpatialTransformer.imgprocess.gen_diff_arr import gen_diff_arr
 from SpatialTransformer_modify_work.SpatialTransformer.SpatialTransformer import SpatialTransformer
 
 
 def main():
     # 图像数据
     img_arr = get_images_arr(r"img")
+    if not os.path.isdir("img_out"):
+        os.mkdir("img_out")
     Image.fromarray(255 - img_arr[0, :, :, 0], "L").save("img_out\\original.png")
 
     # 形变场向量

@@ -10,7 +10,7 @@ def main():
     arrs = load_arrs("img", 1)
     save_arrs(arrs, "img_original")
 
-    #
+    # 形变场向量
     def_vec_x = np.array([
         [[0, 0], [0, 0], [0, 0]],
         [[0, 0], [0, 0], [0, 0]],

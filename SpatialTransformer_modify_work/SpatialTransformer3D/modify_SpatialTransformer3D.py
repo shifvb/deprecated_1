@@ -6,6 +6,8 @@ from SpatialTransformer_modify_work.SpatialTransformer3D.SpatialTransformer3D im
 
 
 def main():
+    arrs = load_arrs("img", 1)
+    save_arrs(arrs, "img_original")
     pass
 
 

@@ -73,3 +73,28 @@ def grad_xyz(deformation_field_matrix):
     grad_y = tf.reduce_sum(tf.abs(_v[:, 1:, :, :, :] - _v[:, :img_height - 1, :, :, :]))
     grad_z = tf.reduce_sum(tf.abs(_v[:, :, :, 1:, :] - _v[:, :, :, :img_depth - 1, :]))
     return grad_x + grad_y + grad_z
+
+
+if __name__ == '__main__':
+    import numpy as np
+
+    def_vec_x = np.array([
+        [[0, 0], [0, 0], [0, 0]],
+        [[0, 0], [0, 0], [0, 0]],
+        [[0, 0], [0, 0], [0, 0]],
+    ], dtype=np.float32)
+    def_vec_y = np.array([
+        [[0, 0], [0, 0], [0, 0]],
+        [[0, 0], [1, 0], [0, 0]],
+        [[0, 0], [0, 0], [0, 0]],
+    ], dtype=np.float32)
+    def_vec_z = np.array([
+        [[0, 0], [0, 0], [0, 0]],
+        [[0, 0], [0, 0], [0, 0]],
+        [[0, 0], [0, 0], [0, 0]],
+    ], dtype=np.float32) * 3
+    def_vec = np.stack([def_vec_x, def_vec_y, def_vec_z], axis=3).reshape([1, 3, 3, 2, 3])
+
+    with tf.Session() as sess:
+        r = sess.run(grad_xyz(def_vec))
+        print(r)

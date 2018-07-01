@@ -4,6 +4,7 @@ import tensorflow as tf
 from tensorflow.contrib.layers import batch_norm
 from DIRNet3D_for_PETCT_images.models.SpatialTransformer_3d import SpatialTransformer3D
 from DIRNet3D_for_PETCT_images.models.grad_regularization_loss_3d import grad_xyz
+from DIRNet3D_for_PETCT_images.models.ncc_loss_3d import ncc
 
 save_arrs = lambda *args, **kwargs: NotImplementedError()  # todo: implement it
 
@@ -35,7 +36,7 @@ class DIRNet3D(object):
 
         # declare loss
         self.grad_loss = grad_xyz(self.def_vec)
-        self.ncc_loss = -self._ncc(self.y, self.z)  # todo: implement it
+        self.ncc_loss = -ncc(self.y, self.z)
         self.loss = self.ncc_loss + self.grad_loss * 1e-3
 
         # if train, declare optimizer
@@ -89,21 +90,6 @@ class DIRNet3D(object):
 
         # return loss
         return loss, ncc_loss, grad_loss
-
-    @classmethod
-    def _ncc(cls, x, y):  # todo: change to 3d version
-        NotImplementedError()
-        mean_x = tf.reduce_mean(x, [1, 2, 3], keepdims=True)
-        mean_y = tf.reduce_mean(y, [1, 2, 3], keepdims=True)
-        mean_x2 = tf.reduce_mean(tf.square(x), [1, 2, 3], keepdims=True)
-        mean_y2 = tf.reduce_mean(tf.square(y), [1, 2, 3], keepdims=True)
-        stddev_x = tf.reduce_sum(tf.sqrt(mean_x2 - tf.square(mean_x)), [1, 2, 3], keepdims=True)
-        stddev_y = tf.reduce_sum(tf.sqrt(mean_y2 - tf.square(mean_y)), [1, 2, 3], keepdims=True)
-        return tf.reduce_mean((x - mean_x) * (y - mean_y) / (stddev_x * stddev_y))
-
-    # @classmethod
-    # def _mse(cls, x, y):
-    #     return tf.reduce_mean(tf.square(x - y))
 
 
 class _CNN(object):  # todo: change it to 3d version

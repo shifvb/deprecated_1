@@ -3,8 +3,8 @@ import pickle
 import tensorflow as tf
 from tensorflow.contrib.layers import batch_norm
 from DIRNet3D_for_PETCT_images.models.SpatialTransformer_3d import SpatialTransformer3D
+from DIRNet3D_for_PETCT_images.models.grad_regularization_loss_3d import grad_xyz
 
-grad_xyz = lambda *args, **kwargs: NotImplementedError()  # todo: implement it
 save_arrs = lambda *args, **kwargs: NotImplementedError()  # todo: implement it
 
 
@@ -34,7 +34,7 @@ class DIRNet3D(object):
         self.z = self.spatial_transformer.transform(self.x, self.def_vec)
 
         # declare loss
-        self.grad_loss = grad_xyz(self.def_vec)  # todo: implement it
+        self.grad_loss = grad_xyz(self.def_vec)
         self.ncc_loss = -self._ncc(self.y, self.z)  # todo: implement it
         self.loss = self.ncc_loss + self.grad_loss * 1e-3
 

@@ -10,7 +10,7 @@ class SpatialTransformer3D(object):
         [2] https://github.com/iwyoo/DIRNet-tensorflow/blob/master/WarpST.py
     """
 
-    def __call__(self, img, def_vec):
+    def transform(self, img, def_vec):
         """
         :param img: image array
             shape: [batch_size, img_height, img_width, img_depth, img_channel]

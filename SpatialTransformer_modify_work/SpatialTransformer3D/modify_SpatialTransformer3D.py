@@ -31,7 +31,7 @@ def main():
 
     # SpatialTransformer3D
     st3 = SpatialTransformer3D()
-    z = st3(arrs, def_tsr)
+    z = st3.transform(arrs, def_tsr)
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())

@@ -1,9 +1,11 @@
 import os
+import pickle
 import tensorflow as tf
 from tensorflow.contrib.layers import batch_norm
 from DIRNet3D_for_PETCT_images.models.SpatialTransformer_3d import SpatialTransformer3D
 
 grad_xyz = lambda *args, **kwargs: NotImplementedError()  # todo: implement it
+save_arrs = lambda *args, **kwargs: NotImplementedError()  # todo: implement it
 
 
 class DIRNet3D(object):
@@ -24,7 +26,7 @@ class DIRNet3D(object):
         self.xy = tf.concat([self.x, self.y], axis=4)  # concatenate along channel axis
 
         # get deformation field vector throughout vector CNN
-        self.vCNN = _CNN(is_train=is_train, name="vCNN")
+        self.vCNN = _CNN(is_train=is_train, name="vCNN")  # todo: change it to 3d version
         self.def_vec = self.vCNN(self.xy)
 
         # get registered image throughout SpatialTransformer
@@ -41,12 +43,52 @@ class DIRNet3D(object):
             optimizer = tf.train.AdamOptimizer(learning_rate)
             self.train_step = optimizer.minimize(self.loss, var_list=self.vCNN.var_list)
 
-
     def save(self, save_dir):
         self.vCNN.save(self.sess, os.path.join(save_dir, "model.checkpoint"))
 
     def load(self, load_dir):
         self.vCNN.restore(self.sess, os.path.join(load_dir, "model.checkpoint"))
+
+    def fit(self, batch_x, batch_y):
+        # train & calculate loss
+        _, loss, ncc_loss, grad_loss = self.sess.run(
+            fetches=[self.train_step, self.loss, self.ncc_loss, self.grad_loss],
+            feed_dict={self.x: batch_x, self.y: batch_y}
+        )
+        # return loss
+        return loss, ncc_loss, grad_loss
+
+    def deploy(self, batch_x, batch_y, img_path, img_name_start_idx=0, def_vec_path=None):
+        # calculate registration result & loss
+        z, loss, ncc_loss, grad_loss = self.sess.run(
+            fetches=[self.z, self.loss, self.ncc_loss, self.grad_loss],
+            feed_dict={self.x: batch_x, self.y: batch_y}
+        )
+        # save deformation field matrix if `def_vec_path` is set
+        if def_vec_path is not None:
+            pickle.dump(
+                obj=self.sess.run(self.def_vec, {self.x: batch_x, self.y: batch_y}),
+                file=open(def_vec_path, 'wb')
+            )
+        # save image if `img_path` is set
+        if img_path is not None:
+            for i in range(z.shape[0]):
+                _idx = img_name_start_idx + i
+                pickle.dump(
+                    obj=batch_x[i, :, :, :, 0],
+                    file=open(os.path.join(img_path, "{}_x.pickle".format(_idx)), 'wb')
+                )
+                pickle.dump(
+                    obj=batch_y[i, :, :, :, 0],
+                    file=open(os.path.join(img_path, "{}_y.pickle".format(_idx)), 'wb')
+                )
+                pickle.dump(
+                    obj=z[i, :, :, :, 0],
+                    file=open(os.path.join(img_path, "{}_z.pickle".format(_idx)), 'wb')
+                )
+
+        # return loss
+        return loss, ncc_loss, grad_loss
 
     @classmethod
     def _ncc(cls, x, y):  # todo: change to 3d version
@@ -64,11 +106,12 @@ class DIRNet3D(object):
     #     return tf.reduce_mean(tf.square(x - y))
 
 
-class _CNN(object):
+class _CNN(object):  # todo: change it to 3d version
     def __init__(self, is_train, name):
         self.name = name
         self.is_train = is_train
         self.reuse = None
+        NotImplementedError()
 
     def __call__(self, x):
         with tf.variable_scope(self.name, reuse=self.reuse):

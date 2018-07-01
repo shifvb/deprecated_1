@@ -1,12 +1,26 @@
 import os
+
 import tensorflow as tf
 from tensorflow.contrib.layers import batch_norm
-from DIRNet3D_for_PETCT_images.models.SpatialTransformer3D import SpatialTransformer3D
 
 
 class DIRNet3D(object):
-    def __init__(self, name, sess, ):
-        pass
+    def __init__(self, img_shape: list, sess: tf.Session, is_train: bool):
+        """
+        construct DIRNet3D
+        :param img_shape: 1-D list of
+            [batch_size, img_height, img_width, img_depth, img_channels]
+        :param sess: current TensorFlow session reference
+        :param is_train: bool value to indicate whether it is used for training
+        """
+        self.sess = sess
+
+        # declare moving & fixed img placeholder
+        self.x = tf.placeholder(dtype=tf.float32, shape=img_shape)
+        self.y = tf.placeholder(dtype=tf.float32, shape=img_shape)
+        self.xy = tf.concat([self.x, self.y], axis=4)  # concatenate along channel axis
+
+
 
     def save(self, save_dir):  # todo: change
         self.vCNN.save(self.sess, os.path.join(save_dir, "model.checkpoint"))

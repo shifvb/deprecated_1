@@ -6,8 +6,6 @@ from DIRNet3D_for_PETCT_images.models.SpatialTransformer_3d import SpatialTransf
 from DIRNet3D_for_PETCT_images.models.grad_regularization_loss_3d import grad_xyz
 from DIRNet3D_for_PETCT_images.models.ncc_loss_3d import ncc
 
-save_arrs = lambda *args, **kwargs: NotImplementedError()  # todo: implement it
-
 
 class DIRNet3D(object):
     def __init__(self, img_shape: list, sess: tf.Session, is_train: bool, learning_rate=1e-4):
@@ -27,8 +25,9 @@ class DIRNet3D(object):
         self.xy = tf.concat([self.x, self.y], axis=4)  # concatenate along channel axis
 
         # get deformation field vector throughout vector CNN
-        self.vCNN = _CNN(is_train=is_train, name="vCNN")  # todo: change it to 3d version
-        self.def_vec = self.vCNN(self.xy)
+        self.vCNN = _CNN(is_train=is_train, name="vCNN")
+        self.def_vec = self.vCNN(tf.transpose(self.xy, perm=[0, 3, 1, 2, 4]))
+        self.def_vec = tf.transpose(self.def_vec, perm=[0, 2, 3, 1, 4])
 
         # get registered image throughout SpatialTransformer
         self.spatial_transformer = SpatialTransformer3D()
@@ -92,37 +91,39 @@ class DIRNet3D(object):
         return loss, ncc_loss, grad_loss
 
 
-class _CNN(object):  # todo: change it to 3d version
+class _CNN(object):
     def __init__(self, is_train, name):
         self.name = name
         self.is_train = is_train
         self.reuse = None
-        NotImplementedError()
 
     def __call__(self, x):
+        """
+        :param x: Shape `[batch, in_depth, in_height, in_width, in_channels]`
+        """
         with tf.variable_scope(self.name, reuse=self.reuse):
             # conv_1
-            x = self._conv2d(x, "conv1", 16, 3, 1, "SAME", True, tf.nn.elu, self.is_train)
+            x = self._conv3d(x, "conv1", 16, 3, 1, "SAME", True, tf.nn.elu, self.is_train)
             # pool_1
             x = tf.nn.avg_pool(x, [1, 2, 2, 1], [1, 2, 2, 1], "SAME")
             # conv_2
-            x = self._conv2d(x, "conv2", 16, 3, 1, "SAME", True, tf.nn.elu, self.is_train)
+            x = self._conv3d(x, "conv2", 16, 3, 1, "SAME", True, tf.nn.elu, self.is_train)
             # pool_2
             x = tf.nn.avg_pool(x, [1, 2, 2, 1], [1, 2, 2, 1], "SAME")
             # conv_3
-            x = self._conv2d(x, "conv3", 16, 3, 1, "SAME", True, tf.nn.elu, self.is_train)
+            x = self._conv3d(x, "conv3", 16, 3, 1, "SAME", True, tf.nn.elu, self.is_train)
             # pool_3
             x = tf.nn.avg_pool(x, [1, 2, 2, 1], [1, 2, 2, 1], "SAME")
             # conv_4
-            x = self._conv2d(x, "conv4", 16, 3, 1, "SAME", True, tf.nn.elu, self.is_train)
+            x = self._conv3d(x, "conv4", 16, 3, 1, "SAME", True, tf.nn.elu, self.is_train)
             # pool_4
             x = tf.nn.avg_pool(x, [1, 2, 2, 1], [1, 2, 2, 1], "SAME")
             # conv_5
-            x = self._conv2d(x, "conv5", 16, 1, 1, "SAME", True, tf.nn.elu, self.is_train)
+            x = self._conv3d(x, "conv5", 16, 1, 1, "SAME", True, tf.nn.elu, self.is_train)
             # conv_6
-            x = self._conv2d(x, "conv6", 16, 1, 1, "SAME", True, tf.nn.elu, self.is_train)
+            x = self._conv3d(x, "conv6", 16, 1, 1, "SAME", True, tf.nn.elu, self.is_train)
             # conv_7
-            x = self._conv2d(x, "conv7", 2, 1, 1, "SAME", False, None, self.is_train)
+            x = self._conv3d(x, "conv7", 2, 1, 1, "SAME", False, None, self.is_train)
 
         if self.reuse is None:
             self.var_list = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.name)
@@ -138,18 +139,17 @@ class _CNN(object):  # todo: change it to 3d version
         self.saver.restore(sess, path)
 
     @classmethod
-    def _conv2d(cls, x, name, kernel_num, kernel_size, strides, padding, batch_normal, active_function, is_train):
+    def _conv3d(cls, x, name, kernel_num, kernel_size, strides, padding, batch_normal, active_function, is_train):
         with tf.variable_scope(name):
-            # convolution
-            w = tf.get_variable('weight', [kernel_size, kernel_size, x.get_shape()[-1], kernel_num],
-                                initializer=tf.truncated_normal_initializer(stddev=0.01))
-            x = tf.nn.conv2d(x, w, [1, strides, strides, 1], padding)
-
+            # convolution 3d
+            w = tf.get_variable('w', shape=[kernel_size, kernel_size, kernel_size, x.shape[-1], kernel_num],
+                                initializer=tf.truncated_normal(stddev=0.01))
+            x = tf.nn.conv3d(x, w, [1, strides, strides, strides, 1], padding)
             # batch normal
             if batch_normal:
                 x = cls._batch_norm(x, "bn", is_train=is_train)
             else:
-                b = tf.get_variable('biases', [kernel_num], initializer=tf.constant_initializer(0.))
+                b = tf.get_variable('b', [kernel_num], initializer=tf.constant_initializer(0.))
                 x += b
 
             # active function

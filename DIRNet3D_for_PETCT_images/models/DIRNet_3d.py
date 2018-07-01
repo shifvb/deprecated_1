@@ -1,17 +1,20 @@
 import os
-
 import tensorflow as tf
 from tensorflow.contrib.layers import batch_norm
+from DIRNet3D_for_PETCT_images.models.SpatialTransformer_3d import SpatialTransformer3D
+
+grad_xyz = lambda *args, **kwargs: NotImplementedError()  # todo: implement it
 
 
 class DIRNet3D(object):
-    def __init__(self, img_shape: list, sess: tf.Session, is_train: bool):
+    def __init__(self, img_shape: list, sess: tf.Session, is_train: bool, learning_rate=1e-4):
         """
         construct DIRNet3D
         :param img_shape: 1-D list of
             [batch_size, img_height, img_width, img_depth, img_channels]
         :param sess: current TensorFlow session reference
         :param is_train: bool value to indicate whether it is used for training
+        :param learning_rate: learning rate, default to 0.0001
         """
         self.sess = sess
 
@@ -20,16 +23,34 @@ class DIRNet3D(object):
         self.y = tf.placeholder(dtype=tf.float32, shape=img_shape)
         self.xy = tf.concat([self.x, self.y], axis=4)  # concatenate along channel axis
 
+        # get deformation field vector throughout vector CNN
+        self.vCNN = _CNN(is_train=is_train, name="vCNN")
+        self.def_vec = self.vCNN(self.xy)
+
+        # get registered image throughout SpatialTransformer
+        self.spatial_transformer = SpatialTransformer3D()
+        self.z = self.spatial_transformer.transform(self.x, self.def_vec)
+
+        # declare loss
+        self.grad_loss = grad_xyz(self.def_vec)  # todo: implement it
+        self.ncc_loss = -self._ncc(self.y, self.z)  # todo: implement it
+        self.loss = self.ncc_loss + self.grad_loss * 1e-3
+
+        # if train, declare optimizer
+        if is_train:
+            optimizer = tf.train.AdamOptimizer(learning_rate)
+            self.train_step = optimizer.minimize(self.loss, var_list=self.vCNN.var_list)
 
 
-    def save(self, save_dir):  # todo: change
+    def save(self, save_dir):
         self.vCNN.save(self.sess, os.path.join(save_dir, "model.checkpoint"))
 
-    def load(self, load_dir):  # todo: change
-        self.vCNN.save(self.sess, os.path.join(load_dir, "model.checkpoint"))
+    def load(self, load_dir):
+        self.vCNN.restore(self.sess, os.path.join(load_dir, "model.checkpoint"))
 
     @classmethod
-    def _ncc(cls, x, y):
+    def _ncc(cls, x, y):  # todo: change to 3d version
+        NotImplementedError()
         mean_x = tf.reduce_mean(x, [1, 2, 3], keepdims=True)
         mean_y = tf.reduce_mean(y, [1, 2, 3], keepdims=True)
         mean_x2 = tf.reduce_mean(tf.square(x), [1, 2, 3], keepdims=True)
@@ -38,13 +59,13 @@ class DIRNet3D(object):
         stddev_y = tf.reduce_sum(tf.sqrt(mean_y2 - tf.square(mean_y)), [1, 2, 3], keepdims=True)
         return tf.reduce_mean((x - mean_x) * (y - mean_y) / (stddev_x * stddev_y))
 
-    @classmethod
-    def _mse(cls, x, y):
-        return tf.reduce_mean(tf.square(x - y))
+    # @classmethod
+    # def _mse(cls, x, y):
+    #     return tf.reduce_mean(tf.square(x - y))
 
 
 class _CNN(object):
-    def __init__(self, name, is_train):
+    def __init__(self, is_train, name):
         self.name = name
         self.is_train = is_train
         self.reuse = None

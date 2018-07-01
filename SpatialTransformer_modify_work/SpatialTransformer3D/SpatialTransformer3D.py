@@ -10,6 +10,13 @@ class SpatialTransformer3D(object):
         [2] https://github.com/iwyoo/DIRNet-tensorflow/blob/master/WarpST.py
     """
     def __call__(self, img, def_vec):
+        """
+        :param img: image array
+            shape: [batch_size, img_height, img_width, img_depth, img_channel]
+        :param def_vec: deformation field matrix
+            shape: [batch_size, height, width, depth, 3] (3 for x, y, z axis, respectively)
+        :return:
+        """
         def_vec = interpolate_3d(def_vec, *def_vec.shape, *img.shape[1:4])
         dx = def_vec[:, :, :, :, 0]
         dy = def_vec[:, :, :, :, 1]

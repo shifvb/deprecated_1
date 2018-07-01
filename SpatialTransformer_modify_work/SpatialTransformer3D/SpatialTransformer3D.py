@@ -6,7 +6,8 @@ class SpatialTransformer3D(object):
     """
     3D version of SpatialTransformer
     Reference:
-        # todo: reference_1(3d_dense), reference_2(2d_WarpST)
+        [1] https://github.com/voxelmorph/voxelmorph/blob/master/src/dense_3D_spatial_transformer.py
+        [2] https://github.com/iwyoo/DIRNet-tensorflow/blob/master/WarpST.py
     """
     def __call__(self, img, def_vec):
         def_vec = interpolate_3d(def_vec, *def_vec.shape, *img.shape[1:4])

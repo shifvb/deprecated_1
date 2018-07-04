@@ -50,6 +50,7 @@ def main():
     # 构建网络
     sess = tf.Session()
     net = DIRNet3D(img_shape=cfg.image_size, sess=sess, is_train=True, learning_rate=cfg.learning_rate)
+    sess.run(tf.global_variables_initializer())
 
     # 开始训练
     for epoch in range(cfg.epoch_num):

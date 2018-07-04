@@ -123,7 +123,7 @@ class _CNN(object):
             # conv_6
             x = self._conv3d(x, "conv6", 16, 1, 1, "SAME", True, tf.nn.elu, self.is_train)
             # conv_7
-            x = self._conv3d(x, "conv7", 2, 1, 1, "SAME", False, None, self.is_train)
+            x = self._conv3d(x, "conv7", 3, 1, 1, "SAME", False, None, self.is_train)
 
         if self.reuse is None:
             self.var_list = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.name)

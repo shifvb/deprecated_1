@@ -9,9 +9,10 @@ from DIRNet3D_for_PETCT_images.data.sample_data import MyBatch as Batch
 
 
 class TrainConfig(object):
-    def __init__(self, batch_size, learning_rate,
+    def __init__(self, image_size, batch_size, learning_rate,
                  train_x_dir, train_y_dir, valid_x_dir, valid_y_dir, temp_dir):
         # 网络参数设置
+        self.image_size = [batch_size] + image_size
         self.batch_size = batch_size
         self.learning_rate = learning_rate
 
@@ -33,11 +34,10 @@ class TrainConfig(object):
         self.loss_rec = LossRecorder()
 
 
-
 def main():
     # 网络参数设置
-    # todo: pathes
     cfg = TrainConfig(
+        image_size=[64, 64, 64, 1],
         batch_size=32,
         learning_rate=1e-4,
         train_x_dir=r"F:\KHJ\3D volume\pt_volume",
@@ -49,7 +49,7 @@ def main():
 
     # 构建网络
     sess = tf.Session()
-    net = DIRNet3D(img_shape=[1, 128, 128, 128, 3], sess=sess, is_train=True, learning_rate=cfg.learning_rate)
+    net = DIRNet3D(img_shape=cfg.image_size, sess=sess, is_train=True, learning_rate=cfg.learning_rate)
 
     # 开始训练
     for epoch in range(cfg.epoch_num):

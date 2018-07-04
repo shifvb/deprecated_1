@@ -26,9 +26,12 @@ class TrainConfig(object):
 
         # 存储路径设置
         self.temp_dir = temp_dir
+        if not os.path.isdir(self.temp_dir):
+            os.mkdir(self.temp_dir)
         self.train_logger = logger(r"F:\registration_running_data\log", "train.log")
         self.valid_logger = logger(r"F:\registration_running_data\log", "valid.log")
         self.loss_rec = LossRecorder()
+
 
 
 def main():
@@ -37,11 +40,11 @@ def main():
     cfg = TrainConfig(
         batch_size=32,
         learning_rate=1e-4,
-        train_x_dir=r"",
-        train_y_dir=r"",
-        valid_x_dir=r"",
-        valid_y_dir=r"",
-        temp_dir=r"",
+        train_x_dir=r"F:\KHJ\3D volume\pt_volume",
+        train_y_dir=r"F:\KHJ\3D volume\ct_volume",
+        valid_x_dir=r"F:\KHJ\3D volume\pt_volume_valid",
+        valid_y_dir=r"F:\KHJ\3D volume\ct_volume_valid",
+        temp_dir=r"F:\registration_running_data\validate",
     )
 
     # 构建网络

@@ -105,19 +105,19 @@ class _CNN(object):
             # conv_1
             x = self._conv3d(x, "conv1", 16, 3, 1, "SAME", True, tf.nn.elu, self.is_train)
             # pool_1
-            x = tf.nn.avg_pool(x, [1, 2, 2, 1], [1, 2, 2, 1], "SAME")
+            x = tf.nn.avg_pool3d(x, [1, 2, 2, 2, 1], [1, 2, 2, 2, 1], "SAME")
             # conv_2
             x = self._conv3d(x, "conv2", 16, 3, 1, "SAME", True, tf.nn.elu, self.is_train)
             # pool_2
-            x = tf.nn.avg_pool(x, [1, 2, 2, 1], [1, 2, 2, 1], "SAME")
+            x = tf.nn.avg_pool3d(x, [1, 2, 2, 2, 1], [1, 2, 2, 2, 1], "SAME")
             # conv_3
             x = self._conv3d(x, "conv3", 16, 3, 1, "SAME", True, tf.nn.elu, self.is_train)
             # pool_3
-            x = tf.nn.avg_pool(x, [1, 2, 2, 1], [1, 2, 2, 1], "SAME")
+            x = tf.nn.avg_pool3d(x, [1, 2, 2, 2, 1], [1, 2, 2, 2, 1], "SAME")
             # conv_4
             x = self._conv3d(x, "conv4", 16, 3, 1, "SAME", True, tf.nn.elu, self.is_train)
             # pool_4
-            x = tf.nn.avg_pool(x, [1, 2, 2, 1], [1, 2, 2, 1], "SAME")
+            x = tf.nn.avg_pool3d(x, [1, 2, 2, 2, 1], [1, 2, 2, 2, 1], "SAME")
             # conv_5
             x = self._conv3d(x, "conv5", 16, 1, 1, "SAME", True, tf.nn.elu, self.is_train)
             # conv_6

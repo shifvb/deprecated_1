@@ -20,15 +20,23 @@ class MyBatch(object):
         self.max_cursor = self.len // self.batch_size
 
     def next_batch(self):
+        # 获得加载图像的绝对路径
         _start = self.cursor * self.batch_size
         _end = _start + self.batch_size
         _result = self.rand_x_names[_start: _end], self.rand_y_names[_start: _end]
         self.cursor += 1
 
+        # 如果sample全部完成了，那么就重新生成乱序数组，再来一次
         if self.cursor == self.max_cursor:
             self.cursor = 0
             self._shuffle()
-        return _result
+
+        # 从绝对路径实际加载
+        batch_x = [np.array(pickle.load(open(_, 'rb'))) for _ in _result[0]]
+        batch_y = [np.array(pickle.load(open(_, 'rb'))) for _ in _result[1]]
+        batch_x = np.concatenate(batch_x, axis=0)
+        batch_y = np.concatenate(batch_y, axis=0)
+        return batch_x, batch_y
 
     def _shuffle(self):
         if self.shuffle:

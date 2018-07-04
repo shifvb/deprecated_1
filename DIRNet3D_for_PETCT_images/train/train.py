@@ -1,7 +1,7 @@
 import os
 import time
 import numpy as np
-import tensorflow as  tf
+import tensorflow as tf
 from DIRNet3D_for_PETCT_images.models.DIRNet_3d import DIRNet3D
 from DIRNet3D_for_PETCT_images.train.train_utils import my_logger as logger
 from DIRNet3D_for_PETCT_images.train.train_utils import LossRecorder
@@ -61,6 +61,9 @@ def main():
         # 记录验证loss日志
         cfg.valid_logger.info("[VALID] epoch={:>6d}, loss={:.6f}, "
                               "ncc_loss={:.6f}, grad_loss={:.6f}".format(epoch, *cfg.loss_rec.get_losses()))
+
+    # 释放资源
+    sess.close()
 
 
 if __name__ == '__main__':

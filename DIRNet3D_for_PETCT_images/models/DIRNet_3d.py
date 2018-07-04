@@ -143,7 +143,7 @@ class _CNN(object):
         with tf.variable_scope(name):
             # convolution 3d
             w = tf.get_variable('w', shape=[kernel_size, kernel_size, kernel_size, x.shape[-1], kernel_num],
-                                initializer=tf.truncated_normal(stddev=0.01))
+                                initializer=tf.truncated_normal_initializer(stddev=0.01))
             x = tf.nn.conv3d(x, w, [1, strides, strides, strides, 1], padding)
             # batch normal
             if batch_normal:

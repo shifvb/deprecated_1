@@ -9,17 +9,29 @@ def _trans(in_path, out_folder):
     _name = os.path.split(in_path)[-1].split(".")[0]
     out_folder = os.path.join(out_folder, _name)
     if not os.path.isdir(out_folder):
-        os.mkdir(out_folder)
+        os.makedirs(out_folder)
     # extract data
     data = pickle.load(open(in_path, 'rb'))
-    for i in range(data.shape[3]):
-        _img_arr = (data[0, :, :, i, 0] * 255).astype(np.uint8)
-        _img = Image.fromarray(_img_arr, "L")
-        _img.save(os.path.join(out_folder, "{:>3}.jpg".format(i)))
+    if data.ndim == 5:
+        for i in range(data.shape[3]):
+            _img_arr = (data[0, :, :, i, 0] * 255).astype(np.uint8)
+            _img = Image.fromarray(_img_arr, "L")
+            _img.save(os.path.join(out_folder, "{:>3}.jpg".format(i)))
+    elif data.ndim == 3:
+        for i in range(data.shape[2]):
+            _img_arr = (data[:, :, i] * 255).astype(np.uint8)
+            _img = Image.fromarray(_img_arr, "L")
+            _img.save(os.path.join(out_folder, "{:>3}.jpg".format(i)))
+    # save data
 
+
+def trans(in_folder, out_folder):
+    img_names = [os.path.join(in_folder, _) for _ in os.listdir(in_folder)]
+    for img_name in img_names:
+        _trans(img_name, out_folder)
 
 def main():
-    _trans(r"F:\KHJ\3D volume\pt_volume\03807.pkl", r"F:\temp_images")
+    trans(r"F:\registration_running_data\validate", r"F:\registration_running_data\view\validate")
 
 
 if __name__ == '__main__':

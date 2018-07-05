@@ -6,7 +6,6 @@ from DIRNet3D_for_PETCT_images.models.DIRNet_3d import DIRNet3D
 from DIRNet3D_for_PETCT_images.train.train_utils import my_logger as logger
 from DIRNet3D_for_PETCT_images.train.train_utils import LossRecorder
 from DIRNet3D_for_PETCT_images.data.sample_data import MyBatch as Batch
-from DIRNet3D_for_PETCT_images.data.sample_data import FakeBatch
 
 
 class TrainConfig(object):
@@ -48,9 +47,6 @@ def main():
         valid_y_dir=r"F:\KHJ\3D volume\ct_volume_valid",
         temp_dir=r"F:\registration_running_data\validate",
     )
-
-    # fake
-    cfg.train_data_set = FakeBatch(cfg.image_size, np.float32)  # todo: do not useit in
 
     # 构建网络
     print("[INFO] [{}] Constructing Network...".format(time.asctime()[11:19]))

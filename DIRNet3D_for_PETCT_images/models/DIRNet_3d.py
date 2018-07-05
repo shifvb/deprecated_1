@@ -36,7 +36,7 @@ class DIRNet3D(object):
         # declare loss
         self.grad_loss = grad_xyz(self.def_vec)
         self.ncc_loss = -ncc(self.y, self.z)
-        self.loss = self.ncc_loss + self.grad_loss * 1e-3
+        self.loss = self.ncc_loss + self.grad_loss * 1e-4
 
         # if train, declare optimizer
         if is_train:

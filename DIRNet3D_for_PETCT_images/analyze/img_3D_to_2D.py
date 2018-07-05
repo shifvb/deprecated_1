@@ -30,6 +30,7 @@ def trans(in_folder, out_folder):
     for img_name in img_names:
         _trans(img_name, out_folder)
 
+
 def main():
     trans(r"F:\registration_running_data\validate", r"F:\registration_running_data\view\validate")
 

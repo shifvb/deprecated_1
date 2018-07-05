@@ -39,7 +39,7 @@ def gen_loss_graph_from_log_v4():
     plt.xlabel("iteration")
     plt.ylabel("loss")
     # plt.axis([0, 20000, -0.996, -0.984])
-    plt.legend(bbox_to_anchor=[0.5, 0.5])
+    plt.legend(bbox_to_anchor=[0.9, 0.9])
     plt.show()
 
 

@@ -4,6 +4,16 @@ import pickle
 import numpy as np
 
 
+class FakeBatch(object):
+    def __init__(self, fake_shape, fake_dtype):
+        self.fake_shape = fake_shape
+        self.fake_dtype = fake_dtype
+
+    def next_batch(self):
+        return np.empty(shape=self.fake_shape, dtype=self.fake_dtype), \
+               np.empty(shape=self.fake_shape, dtype=self.fake_dtype)
+
+
 class MyBatch(object):
     def __init__(self, x_dir: str, y_dir: str, batch_size: int, shuffle: bool):
         self.x_dir = x_dir

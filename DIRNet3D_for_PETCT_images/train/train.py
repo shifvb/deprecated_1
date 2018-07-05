@@ -36,9 +36,10 @@ class TrainConfig(object):
 
 def main():
     # 网络参数设置
+    print("[INFO] [{}] Setting Parameters...".format(time.asctime()[11:19]))
     cfg = TrainConfig(
         image_size=[64, 64, 64, 1],
-        batch_size=32,
+        batch_size=2,
         learning_rate=1e-4,
         train_x_dir=r"F:\KHJ\3D volume\pt_volume",
         train_y_dir=r"F:\KHJ\3D volume\ct_volume",
@@ -48,19 +49,25 @@ def main():
     )
 
     # 构建网络
+    print("[INFO] [{}] Constructing Network...".format(time.asctime()[11:19]))
     sess = tf.Session()
     net = DIRNet3D(img_shape=cfg.image_size, sess=sess, is_train=True, learning_rate=cfg.learning_rate)
     sess.run(tf.global_variables_initializer())
 
     # 开始训练
+    print("[INFO] [{}] Start Training...".format(time.asctime()[11:19]))
     for epoch in range(cfg.epoch_num):
         # 开始单个epoch训练
         for i in range(cfg.train_per_epoch):
+            print("[DEBUG] [{}] epoch_{}, iter_{}".format(time.asctime()[11:19], epoch, i))
             _tx, _ty = cfg.train_data_set.next_batch()  # 随机获得训练集
             cfg.loss_rec.record_loss(*net.fit(_tx, _ty))  # 记录训练loss
         # 记录训练loss日志
-        cfg.train_logger.info("[TRAIN] epoch={:>6d}, loss={:.6f}, "
-                              "ncc_loss={:.6f}, grad_loss={:.6f}".format(epoch, *cfg.loss_rec.get_losses()))
+        cfg.train_logger.info(
+            "[TRAIN] [{}] epoch={:>6d}, loss={:.6f}, ncc_loss={:.6f}, grad_loss={:.6f}".format(
+                time.asctime()[11:19], epoch, *cfg.loss_rec.get_losses()
+            )
+        )
 
         # 放入验证集进行验证
         _v_img_path = cfg.temp_dir if epoch % 5 == 0 else None
@@ -68,8 +75,11 @@ def main():
             _vx, _vy = cfg.valid_data_set.next_batch()  # 顺序获得训练集
             cfg.loss_rec.record_loss(*net.deploy(_vx, _vy, _v_img_path, j * cfg.batch_size))  # 记录验证loss
         # 记录验证loss日志
-        cfg.valid_logger.info("[VALID] epoch={:>6d}, loss={:.6f}, "
-                              "ncc_loss={:.6f}, grad_loss={:.6f}".format(epoch, *cfg.loss_rec.get_losses()))
+        cfg.valid_logger.info(
+            "[VALID] [{}] epoch={:>6d}, loss={:.6f}, ncc_loss={:.6f}, grad_loss={:.6f}".format(
+                time.asctime()[11:19], epoch, *cfg.loss_rec.get_losses()
+            )
+        )
 
     # 释放资源
     sess.close()

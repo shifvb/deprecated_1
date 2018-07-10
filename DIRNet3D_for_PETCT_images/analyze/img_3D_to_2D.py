@@ -36,8 +36,8 @@ def trans(in_folder, out_folder, axis=None):
 
 def main():
     trans(r"F:\新建文件夹", r"d:\result_hori")
-    trans(r"F:\新建文件夹", r"d:\result_sagi", [2, 0, 1])
-    trans(r"F:\新建文件夹", r"d:\result_coro", [2, 1, 0])
+    # trans(r"F:\新建文件夹", r"d:\result_sagi", [2, 0, 1])
+    # trans(r"F:\新建文件夹", r"d:\result_coro", [2, 1, 0])
 
 if __name__ == '__main__':
     main()
